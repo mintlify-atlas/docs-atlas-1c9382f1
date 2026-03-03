@@ -1,0 +1,146 @@
+---
+title: mappings
+description: Get coin ID mappings across different platforms
+icon: diagram-project
+---
+
+<Note>
+  **Paid Feature** — Requires Business plan or higher
+  
+  [View pricing](https://coinpaprika.com/api/pricing) · [Set API key](/api/config#set-key)
+</Note>
+
+## Overview
+
+Retrieve comprehensive mappings between CoinPaprika coin IDs and identifiers from other major crypto data platforms (CoinMarketCap, CoinGecko, Messari, etc.).
+
+## Usage
+
+```bash
+coinpaprika-cli mappings
+```
+
+## Options
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper (for scripts/piping)
+</ParamField>
+
+## Examples
+
+### Get all mappings
+
+```bash
+coinpaprika-cli mappings
+```
+
+### JSON output for data integration
+
+```bash
+coinpaprika-cli mappings --output json --raw > mappings.json
+```
+
+### Find CoinGecko ID for Bitcoin
+
+```bash
+coinpaprika-cli mappings --output json --raw | \
+  jq '.[] | select(.coinpaprika_id == "btc-bitcoin") | .coingecko_id'
+```
+
+### Convert between platform IDs
+
+```bash
+# Get mapping for a specific coin
+coinpaprika-cli mappings --output json --raw | \
+  jq '.[] | select(.coinmarketcap_id == "1")'
+```
+
+## Response Structure
+
+The response is an array of mapping objects, where each object contains:
+
+<ResponseField name="coinpaprika_id" type="string">
+  CoinPaprika coin ID (e.g., `btc-bitcoin`)
+</ResponseField>
+
+<ResponseField name="coingecko_id" type="string">
+  CoinGecko coin ID (e.g., `bitcoin`)
+</ResponseField>
+
+<ResponseField name="coinmarketcap_id" type="string">
+  CoinMarketCap coin ID (numeric, e.g., `1` for Bitcoin)
+</ResponseField>
+
+<ResponseField name="messari_id" type="string">
+  Messari asset slug
+</ResponseField>
+
+<ResponseField name="livecoinwatch_id" type="string">
+  LiveCoinWatch identifier
+</ResponseField>
+
+<Info>
+  Available mapping fields may vary depending on data availability for each coin
+</Info>
+
+## API Endpoint
+
+```
+GET https://api-pro.coinpaprika.com/v1/coins/mappings
+```
+
+**Headers:**
+```
+Authorization: <your-api-key>
+```
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Data Integration" icon="arrows-turn-to-dots">
+    Sync data between multiple crypto data providers
+  </Card>
+  <Card title="Multi-Source Validation" icon="shield-check">
+    Cross-reference data from different platforms
+  </Card>
+  <Card title="Platform Migration" icon="right-left">
+    Migrate from one data provider to CoinPaprika
+  </Card>
+  <Card title="ID Translation" icon="language">
+    Translate coin IDs in existing datasets
+  </Card>
+</CardGroup>
+
+## Plan Requirements
+
+<Warning>
+  **Business plan or higher required**
+  
+  This endpoint is not available on:
+  - Free tier
+  - Starter plan
+  
+  [Upgrade to Business plan](https://coinpaprika.com/api/pricing)
+</Warning>
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="changelog" icon="timeline" href="/api/changelog">
+    Track coin ID changes over time
+  </Card>
+  <Card title="key-info" icon="key" href="/api/key-info">
+    Check your API key and plan
+  </Card>
+</CardGroup>
+
+## Notes
+
+- Mappings are updated regularly as new coins are added
+- Not all coins have mappings to all platforms
+- Contact support to request missing mappings
+- Data is returned as a large JSON array (several MB)

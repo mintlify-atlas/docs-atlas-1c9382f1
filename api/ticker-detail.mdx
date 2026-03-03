@@ -1,0 +1,166 @@
+---
+title: 'ticker'
+description: 'Get real-time price data for a specific coin'
+---
+
+## Overview
+
+Returns detailed real-time price data for a specific cryptocurrency including current price, volume, market cap, supply information, and price changes across multiple timeframes.
+
+## Usage
+
+```bash
+coinpaprika-cli ticker <COIN_ID> [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="coin_id" type="string" required>
+  Coin ID in format `symbol-name` (e.g., `btc-bitcoin`, `eth-ethereum`)
+</ParamField>
+
+<ParamField path="--quotes" type="string" default="USD">
+  Currency quotes, comma-separated (e.g., `USD`, `BTC`, `USD,BTC,EUR`)
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get Bitcoin ticker
+
+```bash
+coinpaprika-cli ticker btc-bitcoin
+```
+
+### Get Ethereum ticker with multiple quote currencies
+
+```bash
+coinpaprika-cli ticker eth-ethereum --quotes USD,BTC
+```
+
+### Get Solana ticker in JSON format
+
+```bash
+coinpaprika-cli ticker sol-solana --output json
+```
+
+### Get ticker with raw JSON output
+
+```bash
+coinpaprika-cli ticker btc-bitcoin --output json --raw
+```
+
+## Example Output
+
+### Table Format
+
+```
+Bitcoin (BTC)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Rank:                  1
+Price (USD):           $52,345.67
+Market Cap:            $1,024.5B
+24h Volume:            $28.3B
+
+Supply
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Circulating:           19,567,890 BTC
+Total:                 19,567,890 BTC
+Max:                   21,000,000 BTC
+
+Price Changes
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+15 minutes:            +0.12%
+1 hour:                +0.45%
+24 hours:              +2.34%
+7 days:                +8.45%
+30 days:               +15.67%
+1 year:                +125.34%
+
+All-Time High
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Price:                 $69,000.00
+Date:                  2021-11-10
+From ATH:              -24.13%
+```
+
+### JSON Format
+
+```json
+{
+  "id": "btc-bitcoin",
+  "name": "Bitcoin",
+  "symbol": "BTC",
+  "rank": 1,
+  "circulating_supply": 19567890,
+  "total_supply": 19567890,
+  "max_supply": 21000000,
+  "beta_value": 1.02,
+  "first_data_at": "2010-07-17T00:00:00Z",
+  "last_updated": "2024-03-03T12:00:00Z",
+  "quotes": {
+    "USD": {
+      "price": 52345.67,
+      "volume_24h": 28300000000,
+      "volume_24h_change_24h": 3.45,
+      "market_cap": 1024500000000,
+      "market_cap_change_24h": 2.34,
+      "percent_change_15m": 0.12,
+      "percent_change_30m": 0.23,
+      "percent_change_1h": 0.45,
+      "percent_change_6h": 1.23,
+      "percent_change_12h": 1.87,
+      "percent_change_24h": 2.34,
+      "percent_change_7d": 8.45,
+      "percent_change_30d": 15.67,
+      "percent_change_1y": 125.34,
+      "ath_price": 69000.00,
+      "ath_date": "2021-11-10T14:24:11Z",
+      "percent_from_price_ath": -24.13
+    }
+  }
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique coin identifier |
+| `name` | string | Coin name |
+| `symbol` | string | Coin symbol/ticker |
+| `rank` | integer | Market cap rank |
+| `circulating_supply` | number | Amount in circulation |
+| `total_supply` | number | Total minted supply |
+| `max_supply` | number | Maximum possible supply |
+| `beta_value` | number | Beta coefficient vs Bitcoin |
+| `quotes.{currency}.price` | number | Current price |
+| `quotes.{currency}.volume_24h` | number | 24-hour trading volume |
+| `quotes.{currency}.market_cap` | number | Market capitalization |
+| `quotes.{currency}.percent_change_15m` | number | 15-minute price change |
+| `quotes.{currency}.percent_change_1h` | number | 1-hour price change |
+| `quotes.{currency}.percent_change_24h` | number | 24-hour price change |
+| `quotes.{currency}.percent_change_7d` | number | 7-day price change |
+| `quotes.{currency}.percent_change_30d` | number | 30-day price change |
+| `quotes.{currency}.percent_change_1y` | number | 1-year price change |
+| `quotes.{currency}.ath_price` | number | All-time high price |
+| `quotes.{currency}.ath_date` | string | ATH date (ISO format) |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/tickers/{coin_id}?quotes={quotes}
+```
+
+## Related Commands
+
+- [tickers-list](/api/tickers-list) - List all tickers
+- [ticker-history](/api/ticker-history) - Get historical ticker data
+- [coin-detail](/api/coin-detail) - Get detailed coin information

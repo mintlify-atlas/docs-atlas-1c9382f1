@@ -1,80 +1,388 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick start
+description: Get started with CoinPaprika CLI in 5 minutes
 ---
 
-## Get started in three steps
+# Quick start
 
-Get your documentation site running locally and make your first customization.
+Learn the essential commands to start querying crypto market data from your terminal.
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+Make sure you've [installed the CLI](/installation). Verify it's working:
+
+```bash
+coinpaprika-cli --version
+```
+
+## Optional: Set up your API key
+
+The free tier works without an API key, but if you have one (or want to upgrade later), configure it now:
+
+```bash
+coinpaprika-cli onboard
+```
+
+This interactive wizard will prompt you for your API key and save it to `~/.coinpaprika/config.json`.
+
+<Note>
+You can skip this step — the CLI works immediately with the free tier (20,000 calls/month).
+</Note>
+
+## Your first commands
+
+Let's explore the most useful commands for getting started.
+
+### Get global market overview
+
+See high-level statistics about the entire crypto market:
+
+```bash
+coinpaprika-cli global
+```
+
+**Example output:**
+
+```
+┌──────────────────────┬────────────────┐
+│ market_cap_usd       │ 2543678901234  │
+│ volume_24h_usd       │ 98765432109    │
+│ bitcoin_dominance    │ 54.23          │
+│ cryptocurrencies     │ 8234           │
+│ market_cap_change_24h│ 2.15           │
+└──────────────────────┴────────────────┘
+```
+
+This shows total market cap, 24-hour volume, Bitcoin's market dominance, and the number of tracked cryptocurrencies.
+
+### Get real-time price for a coin
+
+Query current price data for any cryptocurrency using its coin ID:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin
+```
+
+**Example output:**
+
+```
+┌──────────────────────┬────────────────┐
+│ id                   │ btc-bitcoin    │
+│ name                 │ Bitcoin        │
+│ symbol               │ BTC            │
+│ rank                 │ 1              │
+│ price_usd            │ 67432.15       │
+│ volume_24h_usd       │ 28934567890    │
+│ market_cap_usd       │ 1324567890123  │
+│ percent_change_24h   │ 3.24           │
+│ percent_change_7d    │ -1.52          │
+└──────────────────────┴────────────────┘
+```
+
+<Tip>
+Coin IDs follow the format `symbol-name` (e.g., `btc-bitcoin`, `eth-ethereum`, `sol-solana`). Use the search command to find the correct ID.
+</Tip>
+
+### Search for coins, exchanges, and more
+
+Find cryptocurrencies, exchanges, people, or tags by name:
+
+```bash
+coinpaprika-cli search ethereum
+```
+
+**Example output:**
+
+```
+Currencies:
+┌──────────────────┬──────────┬────────┬──────┐
+│ id               │ name     │ symbol │ rank │
+├──────────────────┼──────────┼────────┼──────┤
+│ eth-ethereum     │ Ethereum │ ETH    │ 2    │
+│ etc-ethereum-... │ Ethereum │ ETC    │ 23   │
+└──────────────────┴──────────┴────────┴──────┘
+
+Exchanges:
+┌─────────────────┬──────────────────┬──────┐
+│ id              │ name             │ rank │
+├─────────────────┼──────────────────┼──────┤
+│ uniswap         │ Uniswap          │ 8    │
+└─────────────────┴──────────────────┴──────┘
+```
+
+The search returns matches across multiple categories: currencies, exchanges, ICOs, people, and tags.
+
+### Get ticker data for multiple coins
+
+List real-time prices for the top cryptocurrencies:
+
+```bash
+coinpaprika-cli tickers --limit 5
+```
+
+**Example output:**
+
+```
+┌──────────────────┬──────────┬────────┬──────┬───────────┬──────────────┐
+│ id               │ name     │ symbol │ rank │ price_usd │ market_cap   │
+├──────────────────┼──────────┼────────┼──────┼───────────┼──────────────┤
+│ btc-bitcoin      │ Bitcoin  │ BTC    │ 1    │ 67432.15  │ 1.32e12      │
+│ eth-ethereum     │ Ethereum │ ETH    │ 2    │ 3456.78   │ 4.15e11      │
+│ usdt-tether      │ Tether   │ USDT   │ 3    │ 1.00      │ 9.87e10      │
+│ bnb-binance-coin │ BNB      │ BNB    │ 4    │ 589.23    │ 8.76e10      │
+│ sol-solana       │ Solana   │ SOL    │ 5    │ 143.56    │ 6.54e10      │
+└──────────────────┴──────────┴────────┴──────┴───────────┴──────────────┘
+```
+
+## Working with output formats
+
+The CLI supports multiple output formats for different use cases.
+
+### Table format (default)
+
+Perfect for reading data in your terminal:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin
+```
+
+### JSON format
+
+Use `--output json` for structured data with metadata:
+
+```bash
+coinpaprika-cli --output json ticker btc-bitcoin
+```
+
+**Example output:**
+
+```json
+{
+  "_meta": {
+    "timestamp": "2026-03-03T10:30:00Z",
+    "api_version": "v1",
+    "credits": 1
+  },
+  "data": {
+    "id": "btc-bitcoin",
+    "name": "Bitcoin",
+    "symbol": "BTC",
+    "rank": 1,
+    "price_usd": 67432.15,
+    "volume_24h_usd": 28934567890,
+    "market_cap_usd": 1324567890123
+  }
+}
+```
+
+### Raw JSON for scripting
+
+Use `--output json --raw` to get clean JSON without metadata, perfect for piping to other tools:
+
+```bash
+coinpaprika-cli --output json --raw ticker btc-bitcoin | jq '.price_usd'
+```
+
+**Output:**
+
+```
+67432.15
+```
+
+## Common use cases
+
+### Monitor Bitcoin price
+
+Get a quick price check:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin | grep price_usd
+```
+
+### Compare multiple cryptocurrencies
+
+```bash
+coinpaprika-cli ticker btc-bitcoin
+coinpaprika-cli ticker eth-ethereum
+coinpaprika-cli ticker sol-solana
+```
+
+### Find a coin by name
+
+Use search when you don't know the coin ID:
+
+```bash
+coinpaprika-cli search cardano
+```
+
+Then use the returned ID with other commands:
+
+```bash
+coinpaprika-cli ticker ada-cardano
+```
+
+### Get exchange information
+
+View details about a specific exchange:
+
+```bash
+coinpaprika-cli exchange binance
+```
+
+List all exchanges:
+
+```bash
+coinpaprika-cli exchanges --limit 10
+```
+
+### Convert between currencies
+
+Calculate conversions between any two currencies:
+
+```bash
+coinpaprika-cli convert btc-bitcoin usd-us-dollars --amount 0.5
+```
+
+## Advanced features
+
+<Note>
+Some features require a paid API plan. Run `coinpaprika-cli plans` to see what's available.
+</Note>
+
+### Historical OHLCV data
+
+Get candlestick data for charting (requires Starter+ plan):
+
+```bash
+coinpaprika-cli ohlcv btc-bitcoin --start 2024-01-01 --interval 24h --limit 30
+```
+
+### Latest OHLCV (free tier)
+
+Get the last full day of OHLCV data without a paid plan:
+
+```bash
+coinpaprika-cli ohlcv-latest btc-bitcoin
+```
+
+### Ticker history
+
+Query historical ticker snapshots (requires Starter+ plan):
+
+```bash
+coinpaprika-cli ticker-history btc-bitcoin --start 2024-01-01 --interval 1h --limit 24
+```
+
+### Contract queries
+
+Look up tokens by smart contract address:
+
+```bash
+coinpaprika-cli contract-ticker eth-ethereum 0xdac17f958d2ee523a2206206994597c13d831ec7
+```
+
+## Interactive shell mode
+
+For extended exploration, use the interactive REPL:
+
+```bash
+coinpaprika-cli shell
+```
+
+This launches an interactive session where you can run commands without the `coinpaprika-cli` prefix:
+
+```
+coinpaprika> global
+coinpaprika> ticker btc-bitcoin
+coinpaprika> search ethereum
+coinpaprika> exit
+```
+
+## API key management
+
+You have three ways to provide your API key:
+
+<Steps>
+  <Step title="Config file (recommended)">
+    Run the onboarding wizard to save your key:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```bash
+    coinpaprika-cli onboard
+    ```
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    This stores your key in `~/.coinpaprika/config.json`.
+  </Step>
+  
+  <Step title="Environment variable">
+    Export your key in your shell:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```bash
+    export COINPAPRIKA_API_KEY=your-api-key-here
+    ```
+    
+    Add this to your `~/.bashrc` or `~/.zshrc` to make it permanent.
+  </Step>
+  
+  <Step title="CLI flag">
+    Pass the key with each command:
+    
+    ```bash
+    coinpaprika-cli --api-key your-api-key-here ticker btc-bitcoin
+    ```
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+**Priority order**: CLI flag > Environment variable > Config file
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+## View your configuration
 
-### Step 3: Go live
+Check your current config:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+```bash
+coinpaprika-cli config show
+```
+
+Set or update your API key:
+
+```bash
+coinpaprika-cli config set-key YOUR_NEW_KEY
+```
+
+Reset configuration:
+
+```bash
+coinpaprika-cli config reset
+```
+
+## Check API status
+
+Verify the CoinPaprika API is operational:
+
+```bash
+coinpaprika-cli status
+```
+
+## Get help anytime
+
+View all available commands:
+
+```bash
+coinpaprika-cli --help
+```
+
+Get help for a specific command:
+
+```bash
+coinpaprika-cli ticker --help
+```
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Explore all commands" icon="book" href="/commands/overview">
+    Browse the complete command guide with examples
+  </Card>
+  <Card title="View pricing" icon="credit-card" href="/api/plans">
+    Learn about free tier limits and paid plan features
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

@@ -1,0 +1,165 @@
+---
+title: 'coin'
+description: 'Get detailed information about a specific coin'
+---
+
+## Overview
+
+Returns comprehensive details about a specific cryptocurrency including description, team, tags, development status, links, and technical information.
+
+## Usage
+
+```bash
+coinpaprika-cli coin <COIN_ID> [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="coin_id" type="string" required>
+  Coin ID in format `symbol-name` (e.g., `btc-bitcoin`, `eth-ethereum`)
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get Bitcoin details
+
+```bash
+coinpaprika-cli coin btc-bitcoin
+```
+
+### Get Ethereum details in JSON format
+
+```bash
+coinpaprika-cli coin eth-ethereum --output json
+```
+
+### Get Solana details with raw JSON
+
+```bash
+coinpaprika-cli coin sol-solana --output json --raw
+```
+
+## Example Output
+
+### Table Format
+
+```
+Bitcoin (BTC)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ID:                    btc-bitcoin
+Rank:                  1
+Type:                  coin
+Active:                Yes
+New:                   No
+
+Description:
+  Bitcoin is a decentralized cryptocurrency originally described
+  in a 2008 whitepaper by Satoshi Nakamoto...
+
+Technical Details
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Hash Algorithm:        SHA256
+Proof Type:            PoW
+Open Source:           Yes
+Hardware Wallet:       Yes
+Started:               2009-01-03
+
+Team Members
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Satoshi Nakamoto (Founder)
+
+Tags
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Cryptocurrency
+- Payments
+- Store of Value
+```
+
+### JSON Format
+
+```json
+{
+  "id": "btc-bitcoin",
+  "name": "Bitcoin",
+  "symbol": "BTC",
+  "rank": 1,
+  "is_new": false,
+  "is_active": true,
+  "type": "coin",
+  "logo": "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png",
+  "description": "Bitcoin is a decentralized cryptocurrency...",
+  "open_source": true,
+  "started_at": "2009-01-03T00:00:00Z",
+  "development_status": "Working product",
+  "hardware_wallet": true,
+  "proof_type": "PoW",
+  "org_structure": "Decentralized",
+  "hash_algorithm": "SHA256",
+  "tags": [
+    {
+      "id": "cryptocurrency",
+      "name": "Cryptocurrency",
+      "coin_counter": 1234,
+      "ico_counter": 0
+    }
+  ],
+  "team": [
+    {
+      "id": "satoshi-nakamoto",
+      "name": "Satoshi Nakamoto",
+      "position": "Founder"
+    }
+  ],
+  "whitepaper": {
+    "link": "https://bitcoin.org/bitcoin.pdf",
+    "thumbnail": "https://static.coinpaprika.com/coin/btc-bitcoin/whitepaper-thumbnail.jpg"
+  },
+  "first_data_at": "2010-07-17T00:00:00Z",
+  "last_data_at": "2024-03-03T12:00:00Z"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique coin identifier |
+| `name` | string | Coin name |
+| `symbol` | string | Coin symbol/ticker |
+| `rank` | integer | Market cap rank |
+| `is_active` | boolean | Whether the coin is active |
+| `is_new` | boolean | Whether the coin is newly listed |
+| `type` | string | Asset type (`coin` or `token`) |
+| `logo` | string | URL to coin logo image |
+| `description` | string | Detailed description of the coin |
+| `open_source` | boolean | Whether the project is open source |
+| `started_at` | string | Launch date |
+| `development_status` | string | Current development status |
+| `hardware_wallet` | boolean | Hardware wallet support |
+| `proof_type` | string | Consensus mechanism (PoW, PoS, etc.) |
+| `hash_algorithm` | string | Hashing algorithm used |
+| `tags` | array | Associated tags/categories |
+| `team` | array | Team members |
+| `links` | object | Social media and website links |
+| `whitepaper` | object | Whitepaper link and thumbnail |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/coins/{coin_id}
+```
+
+## Related Commands
+
+- [coins-list](/api/coins-list) - List all coins
+- [ticker-detail](/api/ticker-detail) - Get price data for a coin
+- [coin-events](/api/coin-events) - Get coin events
+- [coin-markets](/api/coin-markets) - Get markets for a coin

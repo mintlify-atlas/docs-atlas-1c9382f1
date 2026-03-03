@@ -1,0 +1,176 @@
+---
+title: Shell Mode
+description: Interactive REPL for CoinPaprika CLI
+---
+
+## Overview
+
+Shell mode provides an interactive REPL (Read-Eval-Print Loop) environment for the CoinPaprika CLI, allowing you to run multiple commands without repeatedly typing the CLI name.
+
+## Starting Shell Mode
+
+```bash
+coinpaprika-cli shell
+```
+
+You'll see a welcome message and the interactive prompt:
+
+```
+coinpaprika-cli interactive shell — type commands without 'coinpaprika-cli' prefix
+Type 'exit' or 'quit' to leave. Ctrl+D also exits.
+
+coinpaprika>
+```
+
+## Using the Shell
+
+### Running Commands
+
+Type any CLI command without the `coinpaprika-cli` prefix:
+
+```bash
+coinpaprika> ticker btc-bitcoin
+coinpaprika> global
+coinpaprika> tickers --limit 5
+coinpaprika> coin eth-ethereum --output json
+```
+
+### Command History
+
+The shell maintains a command history that you can navigate using arrow keys:
+
+- **Up Arrow**: Previous command
+- **Down Arrow**: Next command
+
+History is preserved within the session and can be recalled at any time.
+
+### Quoted Arguments
+
+The shell supports both single and double quotes for arguments containing spaces:
+
+```bash
+coinpaprika> search "bitcoin cash"
+coinpaprika> search 'decentralized finance'
+```
+
+**Implementation detail**: The shell's `split_args` function (src/shell.rs:61-92) handles quote parsing to ensure proper argument separation.
+
+## Exiting the Shell
+
+There are multiple ways to exit shell mode:
+
+1. **Type `exit`**:
+   ```bash
+   coinpaprika> exit
+   ```
+
+2. **Type `quit`**:
+   ```bash
+   coinpaprika> quit
+   ```
+
+3. **Press Ctrl+D** (EOF signal)
+
+4. **Press Ctrl+C** (will show a reminder):
+   ```
+   (Ctrl+C — type 'exit' to quit)
+   ```
+   Note: Ctrl+C does not exit the shell, only interrupts the current input.
+
+## Shell Behavior
+
+### Empty Lines
+
+Pressing Enter on an empty line is ignored — the shell will simply display the prompt again.
+
+### Command Parsing
+
+All commands are parsed using the same argument parser as the main CLI. This means:
+
+- All global flags work (`--output`, `--api-key`, `--raw`)
+- All subcommands and their options are supported
+- Invalid commands show the same error messages as the regular CLI
+
+**Source reference**: Command execution happens in src/shell.rs:34-43, where the shell constructs full argument vectors and passes them to the CLI parser.
+
+### Error Handling
+
+If a command fails, the error is displayed, but the shell continues running:
+
+```bash
+coinpaprika> ticker invalid-coin-id
+Error: API request failed: 404 Not Found
+coinpaprika> ticker btc-bitcoin
+# Success — shell continues
+```
+
+## Use Cases
+
+### Interactive Data Exploration
+
+```bash
+coinpaprika> global
+# Review market overview
+
+coinpaprika> tickers --limit 10
+# Check top coins
+
+coinpaprika> ticker btc-bitcoin --quotes USD,BTC
+# Dive into Bitcoin details
+
+coinpaprika> coin-events btc-bitcoin --limit 3
+# Check recent events
+```
+
+### Testing API Queries
+
+Shell mode is ideal for testing and refining queries before using them in scripts:
+
+```bash
+coinpaprika> search bitcoin --categories currencies --limit 5
+# Test search parameters
+
+coinpaprika> coin-markets btc-bitcoin --quotes USD --limit 10
+# Verify market data structure
+```
+
+### Switching Output Formats
+
+```bash
+coinpaprika> ticker eth-ethereum
+# View table output
+
+coinpaprika> ticker eth-ethereum --output json
+# Switch to JSON for the same command
+```
+
+## Technical Details
+
+### Implementation
+
+The shell is built using the `rustyline` library, which provides:
+
+- Line editing capabilities
+- Command history
+- Keyboard shortcuts (Ctrl+C, Ctrl+D)
+- Cross-platform terminal support
+
+**Source**: src/shell.rs:1-93
+
+### Global Flags in Shell Mode
+
+All global flags can be used with any command in the shell:
+
+```bash
+coinpaprika> ticker btc-bitcoin --output json --raw
+coinpaprika> global --api-key YOUR_KEY
+```
+
+These flags are parsed the same way as in regular CLI usage (src/main.rs:29-39).
+
+## Tips
+
+1. **Use shell mode for experimentation** — it's faster than typing the full CLI name repeatedly
+2. **Combine with `--output json`** to inspect full API responses
+3. **Use arrow keys** to quickly re-run previous commands with modifications
+4. **Shell mode respects your config** — API keys from `config.toml` are automatically loaded

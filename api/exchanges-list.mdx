@@ -1,0 +1,164 @@
+---
+title: "exchanges"
+description: "List cryptocurrency exchanges"
+---
+
+## Overview
+
+Retrieve a list of cryptocurrency exchanges with their key metrics including volume, number of markets, and confidence scores.
+
+## Usage
+
+```bash
+coinpaprika-cli exchanges [OPTIONS]
+```
+
+## Options
+
+<ParamField query="limit" type="number" default="50">
+  Maximum number of exchanges to return (exchanges are sorted by adjusted rank)
+</ParamField>
+
+<ParamField query="quotes" type="string" default="USD">
+  Comma-separated list of quote currencies for volume data (e.g., `USD,BTC,EUR`)
+</ParamField>
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper (useful for scripting)
+</ParamField>
+
+## Examples
+
+### List top 10 exchanges
+
+```bash
+coinpaprika-cli exchanges --limit 10
+```
+
+### List exchanges with BTC volume
+
+```bash
+coinpaprika-cli exchanges --quotes BTC --limit 20
+```
+
+### Get all exchanges as JSON
+
+```bash
+coinpaprika-cli exchanges --limit 100 --output json
+```
+
+### Get exchanges in multiple currencies
+
+```bash
+coinpaprika-cli exchanges --quotes USD,BTC,EUR --limit 15
+```
+
+## Response
+
+The command returns a list of exchanges:
+
+```json
+[
+  {
+    "id": "binance",
+    "name": "Binance",
+    "description": "Binance is a global cryptocurrency exchange...",
+    "active": true,
+    "website_status": true,
+    "api_status": true,
+    "markets_data_fetched": true,
+    "adjusted_rank": 1,
+    "reported_rank": 1,
+    "currencies": 375,
+    "markets": 1450,
+    "confidence_score": 0.95,
+    "quotes": {
+      "USD": {
+        "reported_volume_24h": 25000000000,
+        "adjusted_volume_24h": 24000000000,
+        "reported_volume_7d": 175000000000,
+        "adjusted_volume_7d": 168000000000,
+        "reported_volume_30d": 750000000000,
+        "adjusted_volume_30d": 720000000000
+      }
+    },
+    "last_updated": "2024-01-02T15:30:00Z"
+  }
+]
+```
+
+## Response Fields
+
+<ResponseField name="id" type="string">
+  Unique exchange identifier (e.g., `binance`, `coinbase`)
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Display name of the exchange
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Brief description of the exchange
+</ResponseField>
+
+<ResponseField name="active" type="boolean">
+  Whether the exchange is currently active
+</ResponseField>
+
+<ResponseField name="website_status" type="boolean">
+  Whether the exchange website is operational
+</ResponseField>
+
+<ResponseField name="api_status" type="boolean">
+  Whether the exchange API is operational
+</ResponseField>
+
+<ResponseField name="markets_data_fetched" type="boolean">
+  Whether market data is currently being collected
+</ResponseField>
+
+<ResponseField name="adjusted_rank" type="number">
+  Exchange rank based on adjusted volume (more reliable)
+</ResponseField>
+
+<ResponseField name="reported_rank" type="number">
+  Exchange rank based on self-reported volume
+</ResponseField>
+
+<ResponseField name="currencies" type="number">
+  Number of different currencies traded on the exchange
+</ResponseField>
+
+<ResponseField name="markets" type="number">
+  Total number of trading pairs available
+</ResponseField>
+
+<ResponseField name="confidence_score" type="number">
+  CoinPaprika confidence score (0-1) based on data quality
+</ResponseField>
+
+<ResponseField name="quotes" type="object">
+  Volume data in requested quote currencies, with 24h, 7d, and 30d periods
+</ResponseField>
+
+<ResponseField name="last_updated" type="string">
+  ISO 8601 timestamp of last data update
+</ResponseField>
+
+## Notes
+
+- Exchanges are automatically sorted by `adjusted_rank` (most reliable ranking)
+- Adjusted volume filters out wash trading and suspicious activity
+- Confidence score indicates data quality and reliability
+- Available on free tier
+- Use `--limit` to control response size and API usage
+
+## Related Commands
+
+- [`exchange`](/api/exchange-detail) - Get detailed information about a specific exchange
+- [`exchange-markets`](/api/exchange-markets) - List markets on an exchange
+- [`coin-exchanges`](/api/coin-exchanges) - Find exchanges for a specific coin

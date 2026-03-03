@@ -1,0 +1,104 @@
+---
+title: 'global'
+description: 'Get global cryptocurrency market overview'
+---
+
+## Overview
+
+Returns global cryptocurrency market statistics including total market cap, 24h volume, Bitcoin dominance, and historical ATH data.
+
+## Usage
+
+```bash
+coinpaprika-cli global [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get global market overview (table format)
+
+```bash
+coinpaprika-cli global
+```
+
+### Get global market overview (JSON format)
+
+```bash
+coinpaprika-cli global --output json
+```
+
+## Example Output
+
+### Table Format
+
+```
+Global Market Overview
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Market Cap (USD):              $2,456,789,012,345.00
+24h Volume (USD):              $123,456,789,012.00
+Bitcoin Dominance:             48.52%
+Total Cryptocurrencies:        10,234
+Market Cap ATH:                $3,012,345,678,901.00
+Market Cap ATH Date:           2021-11-10
+24h Volume ATH:                $456,789,012,345.00
+24h Volume ATH Date:           2021-05-19
+Market Cap Change (24h):       2.34%
+Volume Change (24h):           -1.23%
+```
+
+### JSON Format
+
+```json
+{
+  "market_cap_usd": 2456789012345.00,
+  "volume_24h_usd": 123456789012.00,
+  "bitcoin_dominance_percentage": 48.52,
+  "cryptocurrencies_number": 10234,
+  "market_cap_ath_value": 3012345678901.00,
+  "market_cap_ath_date": "2021-11-10T14:24:11Z",
+  "volume_24h_ath_value": 456789012345.00,
+  "volume_24h_ath_date": "2021-05-19T16:00:00Z",
+  "volume_24h_percent_from_ath": -72.95,
+  "volume_24h_percent_to_ath": 269.87,
+  "market_cap_change_24h": 2.34,
+  "volume_24h_change_24h": -1.23,
+  "last_updated": 1709476800
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `market_cap_usd` | number | Total market capitalization in USD |
+| `volume_24h_usd` | number | Total 24-hour trading volume in USD |
+| `bitcoin_dominance_percentage` | number | Bitcoin's market cap as percentage of total |
+| `cryptocurrencies_number` | integer | Total number of active cryptocurrencies |
+| `market_cap_ath_value` | number | All-time high market cap value |
+| `market_cap_ath_date` | string | Date of market cap ATH |
+| `volume_24h_ath_value` | number | All-time high 24h volume |
+| `volume_24h_ath_date` | string | Date of volume ATH |
+| `market_cap_change_24h` | number | Market cap percentage change in 24h |
+| `volume_24h_change_24h` | number | Volume percentage change in 24h |
+| `last_updated` | integer | Unix timestamp of last update |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/global
+```
+
+## Related Commands
+
+- [tickers-list](/api/tickers-list) - List all tickers
+- [coins-list](/api/coins-list) - List all coins

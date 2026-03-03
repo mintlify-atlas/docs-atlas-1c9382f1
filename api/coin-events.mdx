@@ -1,0 +1,117 @@
+---
+title: 'coin-events'
+description: 'Get events for a specific coin'
+---
+
+## Overview
+
+Returns upcoming and past events for a cryptocurrency, including conferences, releases, partnerships, and other important dates.
+
+## Usage
+
+```bash
+coinpaprika-cli coin-events <COIN_ID> [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="coin_id" type="string" required>
+  Coin ID in format `symbol-name` (e.g., `btc-bitcoin`)
+</ParamField>
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of events to return
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get Bitcoin events
+
+```bash
+coinpaprika-cli coin-events btc-bitcoin
+```
+
+### Get first 5 Ethereum events
+
+```bash
+coinpaprika-cli coin-events eth-ethereum --limit 5
+```
+
+### Get events in JSON format
+
+```bash
+coinpaprika-cli coin-events sol-solana --output json
+```
+
+## Example Output
+
+### Table Format
+
+```
+┌──────────────┬─────────────────────────────┬────────────┬────────────┬────────────┐
+│ ID           │ Name                        │ Date       │ Date To    │ Conference │
+├──────────────┼─────────────────────────────┼────────────┼────────────┼────────────┤
+│ btc-halving  │ Bitcoin Halving 2024        │ 2024-04-20 │            │ No         │
+│ btc-conf-24  │ Bitcoin Conference Miami    │ 2024-05-24 │ 2024-05-26 │ Yes        │
+│ btc-upgrade  │ Taproot Anniversary         │ 2024-11-14 │            │ No         │
+└──────────────┴─────────────────────────────┴────────────┴────────────┴────────────┘
+```
+
+### JSON Format
+
+```json
+[
+  {
+    "id": "btc-halving",
+    "date": "2024-04-20",
+    "date_to": null,
+    "name": "Bitcoin Halving 2024",
+    "description": "The fourth Bitcoin halving event, reducing block rewards from 6.25 to 3.125 BTC",
+    "is_conference": false,
+    "link": "https://bitcoinhalving.com",
+    "proof_image_link": null
+  },
+  {
+    "id": "btc-conf-24",
+    "date": "2024-05-24",
+    "date_to": "2024-05-26",
+    "name": "Bitcoin Conference Miami",
+    "description": "Annual Bitcoin conference in Miami, Florida",
+    "is_conference": true,
+    "link": "https://b.tc/conference",
+    "proof_image_link": "https://example.com/proof.jpg"
+  }
+]
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique event identifier |
+| `date` | string | Event start date (ISO format) |
+| `date_to` | string | Event end date (for multi-day events) |
+| `name` | string | Event name |
+| `description` | string | Detailed event description |
+| `is_conference` | boolean | Whether the event is a conference |
+| `link` | string | URL to event details |
+| `proof_image_link` | string | URL to proof/verification image |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/coins/{coin_id}/events
+```
+
+## Related Commands
+
+- [coin-detail](/api/coin-detail) - Get detailed coin information
+- [coins-list](/api/coins-list) - List all coins

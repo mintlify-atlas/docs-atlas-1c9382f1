@@ -1,0 +1,281 @@
+---
+title: Coin Commands
+description: List coins and get detailed information about specific cryptocurrencies
+---
+
+## Commands Overview
+
+The CoinPaprika CLI provides several commands for working with coin data:
+
+- `coins` - List all coins
+- `coin` - Get detailed info about a specific coin
+- `coin-events` - Get events for a coin
+- `coin-exchanges` - Get exchanges where a coin is traded
+- `coin-markets` - Get markets for a coin
+
+## List Coins
+
+```bash
+coinpaprika-cli coins [OPTIONS]
+```
+
+List all available coins with basic information.
+
+### Options
+
+- `--limit <NUMBER>` - Maximum number of results (default: `100`)
+
+### Examples
+
+<CodeGroup>
+```bash Top 10 Coins
+coinpaprika-cli coins --limit 10
+```
+
+```bash All Coins (default limit)
+coinpaprika-cli coins
+```
+
+```bash JSON Output
+coinpaprika-cli coins --limit 20 --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+- `id` - Unique coin identifier (e.g., `btc-bitcoin`)
+- `name` - Full coin name
+- `symbol` - Ticker symbol
+- `rank` - Market rank
+- `is_new` - Whether coin is newly listed
+- `is_active` - Whether coin is actively traded
+- `type` - Coin type (coin/token)
+
+## Get Coin Details
+
+```bash
+coinpaprika-cli coin <COIN_ID>
+```
+
+Get comprehensive information about a specific coin.
+
+### Arguments
+
+- `<COIN_ID>` - Coin identifier (e.g., `btc-bitcoin`, `eth-ethereum`)
+
+### Examples
+
+<CodeGroup>
+```bash Bitcoin Details
+coinpaprika-cli coin btc-bitcoin
+```
+
+```bash Ethereum Details
+coinpaprika-cli coin eth-ethereum
+```
+
+```bash JSON Format
+coinpaprika-cli coin btc-bitcoin --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+Basic information:
+- `id`, `name`, `symbol`, `rank`
+- `is_new`, `is_active`, `type`
+- `logo` - Logo image URL
+- `description` - Coin description
+
+Technical details:
+- `open_source` - Whether code is open source
+- `started_at` - Launch date
+- `development_status` - Current development status
+- `hardware_wallet` - Hardware wallet support
+- `proof_type` - Consensus mechanism
+- `org_structure` - Organization structure
+- `hash_algorithm` - Hashing algorithm
+
+Additional data:
+- `tags` - Category tags
+- `team` - Team members
+- `links` - Social links, website, etc.
+- `whitepaper` - Whitepaper link and thumbnail
+- `first_data_at`, `last_data_at` - Data availability dates
+
+## Get Coin Events
+
+```bash
+coinpaprika-cli coin-events <COIN_ID> [OPTIONS]
+```
+
+Get upcoming and past events for a coin.
+
+### Arguments
+
+- `<COIN_ID>` - Coin identifier
+
+### Options
+
+- `--limit <NUMBER>` - Maximum number of results (default: `50`)
+
+### Examples
+
+<CodeGroup>
+```bash Bitcoin Events
+coinpaprika-cli coin-events btc-bitcoin
+```
+
+```bash Latest 5 Events
+coinpaprika-cli coin-events eth-ethereum --limit 5
+```
+</CodeGroup>
+
+### Response Fields
+
+- `id` - Event ID
+- `date` - Event date
+- `date_to` - End date (for multi-day events)
+- `name` - Event name
+- `description` - Event description
+- `is_conference` - Whether it's a conference
+- `link` - Event URL
+- `proof_image_link` - Proof image
+
+## Get Coin Exchanges
+
+```bash
+coinpaprika-cli coin-exchanges <COIN_ID> [OPTIONS]
+```
+
+Get exchanges where a coin is traded.
+
+### Arguments
+
+- `<COIN_ID>` - Coin identifier
+
+### Options
+
+- `--limit <NUMBER>` - Maximum number of results (default: `50`)
+
+### Examples
+
+<CodeGroup>
+```bash Bitcoin Exchanges
+coinpaprika-cli coin-exchanges btc-bitcoin --limit 10
+```
+
+```bash All Ethereum Exchanges
+coinpaprika-cli coin-exchanges eth-ethereum
+```
+</CodeGroup>
+
+### Response Fields
+
+- `id` - Exchange ID
+- `name` - Exchange name
+- `adjusted_volume_24h_share` - Volume share percentage
+- `fiats` - Supported fiat currencies
+
+## Get Coin Markets
+
+```bash
+coinpaprika-cli coin-markets <COIN_ID> [OPTIONS]
+```
+
+Get trading markets (pairs) for a coin.
+
+### Arguments
+
+- `<COIN_ID>` - Coin identifier
+
+### Options
+
+- `--quotes <CURRENCIES>` - Currency quotes, comma-separated (default: `USD`)
+- `--limit <NUMBER>` - Maximum number of results (default: `50`)
+
+### Examples
+
+<CodeGroup>
+```bash Bitcoin Markets (USD)
+coinpaprika-cli coin-markets btc-bitcoin
+```
+
+```bash Multiple Quotes
+coinpaprika-cli coin-markets btc-bitcoin --quotes USD,BTC
+```
+
+```bash Top 20 Markets
+coinpaprika-cli coin-markets eth-ethereum --limit 20
+```
+</CodeGroup>
+
+### Response Fields
+
+- `exchange_id`, `exchange_name` - Exchange information
+- `pair` - Trading pair (e.g., BTC/USD)
+- `base_currency_id`, `base_currency_name` - Base currency
+- `quote_currency_id`, `quote_currency_name` - Quote currency
+- `market_url` - Direct link to market
+- `category` - Market category
+- `fee_type` - Fee structure
+- `outlier` - Whether market is an outlier
+- `adjusted_volume_24h_share` - Volume share
+- `quotes` - Price and volume by quote currency
+- `trust_score` - Market trust score
+- `last_updated` - Last update timestamp
+
+## Finding Coin IDs
+
+Coin IDs follow the format `symbol-name` (lowercase, hyphenated):
+
+```bash
+# Search for a coin to find its ID
+coinpaprika-cli search bitcoin
+coinpaprika-cli search "shiba inu"
+
+# List coins to browse IDs
+coinpaprika-cli coins --limit 100
+```
+
+Common coin IDs:
+- `btc-bitcoin`
+- `eth-ethereum`
+- `usdt-tether`
+- `bnb-binance-coin`
+- `xrp-xrp`
+- `ada-cardano`
+- `doge-dogecoin`
+- `sol-solana`
+
+## Use Cases
+
+### Coin Research
+```bash
+# Get complete coin profile
+coinpaprika-cli coin btc-bitcoin
+
+# Check where it's traded
+coinpaprika-cli coin-exchanges btc-bitcoin
+
+# Find best markets
+coinpaprika-cli coin-markets btc-bitcoin --limit 10
+```
+
+### Event Tracking
+```bash
+# Monitor upcoming events
+coinpaprika-cli coin-events eth-ethereum --limit 10
+```
+
+### Market Analysis
+```bash
+# Compare markets across exchanges
+coinpaprika-cli coin-markets btc-bitcoin --quotes USD,BTC,EUR
+```
+
+## Related Commands
+
+- [`ticker`](/commands/tickers#get-ticker) - Get real-time price data
+- [`search`](/commands/search-convert#search) - Find coins by name
+- [`exchanges`](/commands/exchanges) - Browse exchanges

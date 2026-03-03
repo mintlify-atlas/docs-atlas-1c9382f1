@@ -1,0 +1,229 @@
+---
+title: config
+description: Manage CLI configuration settings
+icon: gear
+---
+
+## Overview
+
+Manage CoinPaprika CLI configuration, including API key storage and settings display.
+
+The `config` command has three subcommands:
+- `show` — Display current configuration
+- `set-key` — Save your API key
+- `reset` — Delete configuration file
+
+## Subcommands
+
+### show
+
+Display the current CLI configuration, including API key status and configuration file location.
+
+#### Usage
+
+```bash
+coinpaprika-cli config show
+```
+
+#### Options
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper
+</ParamField>
+
+#### Examples
+
+```bash
+# Show current config
+coinpaprika-cli config show
+
+# JSON output
+coinpaprika-cli config show --output json
+```
+
+#### Response Fields
+
+<ResponseField name="config_file" type="string">
+  Path to the configuration file (e.g., `~/.config/coinpaprika-cli/config.toml`)
+</ResponseField>
+
+<ResponseField name="api_key" type="string">
+  Masked API key (e.g., `sk-...abc123`), or `null` if no key is set
+</ResponseField>
+
+<ResponseField name="key_source" type="string">
+  Where the API key is loaded from: `file`, `env`, `flag`, or `none`
+</ResponseField>
+
+<ResponseField name="coinpaprika_url" type="string">
+  API base URL (`api.coinpaprika.com` for free tier, `api-pro.coinpaprika.com` for paid)
+</ResponseField>
+
+---
+
+### set-key
+
+Save your CoinPaprika API key to the configuration file.
+
+#### Usage
+
+```bash
+coinpaprika-cli config set-key <api_key>
+```
+
+#### Arguments
+
+<ParamField path="api_key" type="string" required>
+  Your CoinPaprika API key (get one at [coinpaprika.com/api/pricing](https://coinpaprika.com/api/pricing))
+</ParamField>
+
+#### Examples
+
+```bash
+# Set API key
+coinpaprika-cli config set-key sk-YOUR-API-KEY-HERE
+
+# Use with onboard command instead (interactive)
+coinpaprika-cli onboard
+```
+
+#### Output
+
+```
+API key saved to /home/user/.config/coinpaprika-cli/config.toml
+Key: sk-...abc123
+```
+
+---
+
+### reset
+
+Delete the CLI configuration file, removing all saved settings including the API key.
+
+#### Usage
+
+```bash
+coinpaprika-cli config reset
+```
+
+#### Examples
+
+```bash
+# Delete configuration
+coinpaprika-cli config reset
+```
+
+#### Output
+
+```
+Configuration deleted.
+```
+
+<Warning>
+  This action cannot be undone. You'll need to set your API key again using `config set-key` or `onboard`.
+</Warning>
+
+---
+
+## Configuration File Location
+
+The config file is stored at:
+
+- **Linux/macOS:** `~/.config/coinpaprika-cli/config.toml`
+- **Windows:** `%APPDATA%\coinpaprika-cli\config.toml`
+
+### File Format (TOML)
+
+```toml
+api_key = "sk-your-api-key-here"
+```
+
+## API Key Priority
+
+When multiple API keys are provided, the CLI uses this priority order:
+
+<Steps>
+  <Step title="Command-line flag">
+    ```bash
+    coinpaprika-cli ticker btc-bitcoin --api-key sk-YOUR-KEY
+    ```
+    Highest priority
+  </Step>
+  
+  <Step title="Environment variable">
+    ```bash
+    export COINPAPRIKA_API_KEY=sk-YOUR-KEY
+    ```
+  </Step>
+  
+  <Step title="Configuration file">
+    ```bash
+    coinpaprika-cli config set-key sk-YOUR-KEY
+    ```
+    Lowest priority (but most convenient)
+  </Step>
+</Steps>
+
+## Examples
+
+### First-time setup
+
+```bash
+# Option 1: Interactive onboarding (recommended)
+coinpaprika-cli onboard
+
+# Option 2: Direct key setup
+coinpaprika-cli config set-key sk-YOUR-API-KEY
+
+# Verify configuration
+coinpaprika-cli config show
+```
+
+### Check which key source is active
+
+```bash
+coinpaprika-cli config show --output json | jq -r '.key_source'
+# Output: file, env, flag, or none
+```
+
+### Temporarily use a different key
+
+```bash
+# Without changing config file
+coinpaprika-cli ticker btc-bitcoin --api-key sk-TEMP-KEY
+```
+
+### Remove your key
+
+```bash
+# Delete entire config
+coinpaprika-cli config reset
+
+# Or manually edit the file
+vim ~/.config/coinpaprika-cli/config.toml
+```
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="status" icon="heartbeat" href="/api/status">
+    Check API health and response time
+  </Card>
+  <Card title="key-info" icon="key" href="/api/key-info">
+    Check API key status and usage
+  </Card>
+  <Card title="plans" icon="tag" href="/api/plans">
+    View pricing plans
+  </Card>
+</CardGroup>
+
+## Notes
+
+- API keys are required for Starter, Business, and Enterprise plans
+- Free tier works without an API key (20,000 calls/month)
+- Keys are stored in plain text in the config file (file permissions: 600)
+- Use environment variables in CI/CD to avoid committing keys

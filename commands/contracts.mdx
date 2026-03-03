@@ -1,0 +1,335 @@
+---
+title: Contract Platform Commands
+description: Work with smart contract platforms and query tokens by contract address
+---
+
+## Commands Overview
+
+Contract commands let you work with token contracts on various blockchain platforms:
+
+- `platforms` - List available contract platforms
+- `contracts` - List contracts on a platform
+- `contract-ticker` - Get ticker data by contract address
+- `contract-history` - Historical contract data (paid feature)
+
+## List Platforms
+
+```bash
+coinpaprika-cli platforms
+```
+
+List all supported contract platforms (blockchains).
+
+### Examples
+
+<CodeGroup>
+```bash List Platforms
+coinpaprika-cli platforms
+```
+
+```bash JSON Output
+coinpaprika-cli platforms --output json
+```
+</CodeGroup>
+
+### Common Platforms
+
+- `eth-ethereum` - Ethereum
+- `bnb-binance-coin` - BNB Smart Chain (BSC)
+- `matic-polygon` - Polygon
+- `avax-avalanche` - Avalanche
+- `sol-solana` - Solana
+- `ada-cardano` - Cardano
+
+## List Contracts
+
+```bash
+coinpaprika-cli contracts <PLATFORM_ID> [OPTIONS]
+```
+
+List contracts (tokens) deployed on a specific platform.
+
+### Arguments
+
+- `<PLATFORM_ID>` - Platform identifier (e.g., `eth-ethereum`)
+
+### Options
+
+- `--limit <NUMBER>` - Maximum number of results (default: `50`)
+
+### Examples
+
+<CodeGroup>
+```bash Ethereum Contracts
+coinpaprika-cli contracts eth-ethereum --limit 20
+```
+
+```bash BSC Contracts
+coinpaprika-cli contracts bnb-binance-coin --limit 50
+```
+
+```bash JSON Output
+coinpaprika-cli contracts eth-ethereum --limit 10 --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+- `address` - Contract address
+- `type` - Contract type
+- `id` - CoinPaprika coin ID
+- `active` - Whether contract is active
+
+## Get Contract Ticker
+
+```bash
+coinpaprika-cli contract-ticker <PLATFORM_ID> <ADDRESS>
+```
+
+Get real-time ticker data for a token using its contract address.
+
+### Arguments
+
+- `<PLATFORM_ID>` - Platform identifier
+- `<ADDRESS>` - Contract address
+
+### Examples
+
+<CodeGroup>
+```bash USDT on Ethereum
+coinpaprika-cli contract-ticker eth-ethereum 0xdac17f958d2ee523a2206206994597c13d831ec7
+```
+
+```bash SHIB on Ethereum
+coinpaprika-cli contract-ticker eth-ethereum 0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce
+```
+
+```bash JSON Format
+coinpaprika-cli contract-ticker eth-ethereum 0xdac17f958d2ee523a2206206994597c13d831ec7 --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+Basic information:
+- `id` - CoinPaprika coin ID
+- `name` - Token name
+- `symbol` - Token symbol
+- `rank` - Market rank
+
+Supply data:
+- `circulating_supply` - Circulating supply
+- `total_supply` - Total supply
+- `max_supply` - Maximum supply
+
+Price data:
+- `beta_value` - Beta coefficient
+- `first_data_at` - First data timestamp
+- `last_updated` - Last update timestamp
+
+Quotes (per currency):
+- `price` - Current price
+- `volume_24h` - 24-hour volume
+- `volume_24h_change_24h` - Volume change %
+- `market_cap` - Market capitalization
+- `market_cap_change_24h` - Market cap change %
+- `percent_change_24h` - 24-hour price change %
+- `percent_change_7d` - 7-day price change %
+- `percent_change_30d` - 30-day price change %
+- `percent_change_1y` - 1-year price change %
+- `ath_price` - All-time high price
+- `ath_date` - ATH date
+- `percent_from_price_ath` - Distance from ATH
+
+## Historical Contract Data
+
+<Note>
+**PAID FEATURE:** Requires Starter plan or higher. See [pricing plans](https://coinpaprika.com/api/pricing).
+</Note>
+
+```bash
+coinpaprika-cli contract-history <PLATFORM_ID> <ADDRESS> --start <DATE> [OPTIONS]
+```
+
+Get historical ticker data for a contract.
+
+### Arguments
+
+- `<PLATFORM_ID>` - Platform identifier
+- `<ADDRESS>` - Contract address
+
+### Options
+
+- `--start <DATE>` - Start date in ISO format (e.g., `2024-01-01`) **[Required]**
+- `--end <DATE>` - End date in ISO format (optional)
+- `--interval <INTERVAL>` - Time interval (default: `24h`)
+- `--limit <NUMBER>` - Maximum number of results (default: `50`)
+
+### Examples
+
+<CodeGroup>
+```bash USDT History (30 Days)
+coinpaprika-cli contract-history eth-ethereum \
+  0xdac17f958d2ee523a2206206994597c13d831ec7 \
+  --start 2024-01-01 \
+  --limit 30
+```
+
+```bash Hourly Data (Paid)
+coinpaprika-cli contract-history eth-ethereum \
+  0xdac17f958d2ee523a2206206994597c13d831ec7 \
+  --start 2024-03-01 \
+  --end 2024-03-02 \
+  --interval 1h
+```
+</CodeGroup>
+
+### Response Fields
+
+- `timestamp` - Data point timestamp
+- `price` - Price at timestamp
+- `volume_24h` - 24-hour volume
+- `market_cap` - Market cap at timestamp
+
+## Practical Examples
+
+### Find Contract Address
+
+```bash
+# Search for a token to find its contract
+coinpaprika-cli search "tether"
+
+# List contracts and find specific token
+coinpaprika-cli contracts eth-ethereum --limit 100 --output json --raw | \
+  jq '.[] | select(.id == "usdt-tether")'
+```
+
+### Check Token Price
+
+```bash
+# Get current price of any ERC-20 token
+address="0xdac17f958d2ee523a2206206994597c13d831ec7"  # USDT
+data=$(coinpaprika-cli contract-ticker eth-ethereum $address --output json --raw)
+echo "Price: $(echo $data | jq -r '.quotes.USD.price')"
+echo "Market Cap: $(echo $data | jq -r '.quotes.USD.market_cap')"
+```
+
+### Compare Tokens on Same Platform
+
+```bash
+# Compare multiple tokens
+addresses=(
+  "0xdac17f958d2ee523a2206206994597c13d831ec7"  # USDT
+  "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"  # USDC
+)
+for addr in "${addresses[@]}"; do
+  name=$(coinpaprika-cli contract-ticker eth-ethereum $addr --output json --raw | jq -r '.name')
+  price=$(coinpaprika-cli contract-ticker eth-ethereum $addr --output json --raw | jq -r '.quotes.USD.price')
+  echo "$name: $price"
+done
+```
+
+### Monitor New Contracts
+
+```bash
+# Check recently added contracts
+coinpaprika-cli contracts eth-ethereum --limit 20 --output json --raw | \
+  jq '.[] | select(.active == true)'
+```
+
+### Track Token History
+
+```bash
+# Get 7 days of price history for a token
+address="0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce"  # SHIB
+coinpaprika-cli contract-history eth-ethereum $address \
+  --start $(date -d '7 days ago' +%Y-%m-%d) \
+  --limit 7 \
+  --output json > shib-history.json
+```
+
+## Finding Contract Addresses
+
+### Method 1: Search CoinPaprika
+
+```bash
+# Search and get details
+coinpaprika-cli search "shiba inu"
+coinpaprika-cli coin shib-shiba-inu
+```
+
+### Method 2: List Platform Contracts
+
+```bash
+# Browse all Ethereum tokens
+coinpaprika-cli contracts eth-ethereum --limit 100
+```
+
+### Method 3: Use Blockchain Explorer
+
+For tokens not listed:
+1. Find the contract on Etherscan/BSCScan
+2. Copy the contract address
+3. Query CoinPaprika:
+
+```bash
+coinpaprika-cli contract-ticker eth-ethereum <ADDRESS>
+```
+
+## Supported Platforms
+
+Major platforms with contract support:
+
+- **Ethereum (eth-ethereum)** - ERC-20 tokens
+- **BNB Chain (bnb-binance-coin)** - BEP-20 tokens
+- **Polygon (matic-polygon)** - Polygon tokens
+- **Avalanche (avax-avalanche)** - Avalanche tokens
+- **Solana (sol-solana)** - SPL tokens
+
+Check all platforms:
+```bash
+coinpaprika-cli platforms
+```
+
+## Use Cases
+
+### DeFi Applications
+```bash
+# Query any ERC-20 token directly
+coinpaprika-cli contract-ticker eth-ethereum 0x...
+```
+
+### Token Analysis
+```bash
+# Get historical performance
+coinpaprika-cli contract-history eth-ethereum 0x... --start 2024-01-01
+```
+
+### Portfolio Tracking
+```bash
+# Monitor multiple token contracts
+for addr in ${token_addresses[@]}; do
+  coinpaprika-cli contract-ticker eth-ethereum $addr
+done
+```
+
+### Smart Contract Integration
+```bash
+# Fetch token data by contract address
+data=$(coinpaprika-cli contract-ticker eth-ethereum $CONTRACT_ADDR --output json --raw)
+```
+
+## API Details
+
+- **List Platforms:** `/contracts`
+- **List Contracts:** `/contracts/{platform_id}`
+- **Contract Ticker:** `/contracts/{platform_id}/{address}`
+- **Contract History:** `/contracts/{platform_id}/{address}/historical` (paid)
+- **Method:** GET
+- **Rate Limit:** Counts toward your monthly limit
+
+## Related Commands
+
+- [`ticker`](/commands/tickers#get-ticker) - Get ticker by coin ID
+- [`search`](/commands/search-convert#search) - Search for tokens
+- [`coins`](/commands/coins) - Browse all coins

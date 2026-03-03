@@ -1,0 +1,152 @@
+---
+title: contract-history
+description: Get historical ticker data by contract address
+icon: clock-rotate-left
+---
+
+<Note>
+  **Paid Feature** — Requires Starter plan or higher
+  
+  [View pricing](https://coinpaprika.com/api/pricing) · [Set API key](/api/config#set-key)
+</Note>
+
+## Overview
+
+Retrieve historical price, volume, and market cap data for a token by its smart contract address.
+
+## Usage
+
+```bash
+coinpaprika-cli contract-history <platform_id> <address> --start <date> [options]
+```
+
+## Arguments
+
+<ParamField path="platform_id" type="string" required>
+  Platform ID (e.g., `eth-ethereum`, `bnb-binance-coin`)
+</ParamField>
+
+<ParamField path="address" type="string" required>
+  Smart contract address
+</ParamField>
+
+## Options
+
+<ParamField path="--start" type="string" required>
+  Start date in ISO format (e.g., `2024-01-01` or `2024-01-01T00:00:00Z`)
+</ParamField>
+
+<ParamField path="--end" type="string">
+  End date in ISO format (defaults to current time)
+</ParamField>
+
+<ParamField path="--interval" type="string" default="24h">
+  Time interval: `5m`, `15m`, `30m`, `1h`, `6h`, `12h`, `24h`, `7d`, `30d`
+  
+  <Note>5-minute intervals require Starter+ plan</Note>
+</ParamField>
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of data points to return
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper (for scripts/piping)
+</ParamField>
+
+## Examples
+
+### Get daily price history
+
+```bash
+coinpaprika-cli contract-history eth-ethereum \
+  0xdac17f958d2ee523a2206206994597c13d831ec7 \
+  --start 2024-01-01 --interval 24h --limit 30
+```
+
+### Get hourly data for last week
+
+```bash
+coinpaprika-cli contract-history eth-ethereum \
+  0xdac17f958d2ee523a2206206994597c13d831ec7 \
+  --start 2024-03-01 --end 2024-03-08 --interval 1h
+```
+
+### 5-minute intervals (Starter+ only)
+
+```bash
+coinpaprika-cli contract-history eth-ethereum \
+  0xdac17f958d2ee523a2206206994597c13d831ec7 \
+  --start 2024-03-03T00:00:00Z --interval 5m --limit 100
+```
+
+### JSON output for charting
+
+```bash
+coinpaprika-cli contract-history eth-ethereum \
+  0xdac17f958d2ee523a2206206994597c13d831ec7 \
+  --start 2024-01-01 --interval 24h \
+  --output json --raw | jq '.[] | {date: .timestamp, price: .price}'
+```
+
+## Response Fields
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp for the data point
+</ResponseField>
+
+<ResponseField name="price" type="number">
+  Price at the given timestamp
+</ResponseField>
+
+<ResponseField name="volume_24h" type="number">
+  24-hour trading volume
+</ResponseField>
+
+<ResponseField name="market_cap" type="number">
+  Market capitalization at the given timestamp
+</ResponseField>
+
+## API Endpoint
+
+```
+GET https://api-pro.coinpaprika.com/v1/contracts/{platform_id}/{address}/historical
+```
+
+**Query Parameters:**
+- `start` — ISO 8601 date/time
+- `end` — ISO 8601 date/time (optional)
+- `interval` — Time interval
+- `limit` — Max results
+
+## Plan Requirements
+
+<Info>
+  **Available on:**
+  - Starter plan: 5m, 1h, 24h intervals
+  - Business/Enterprise: All intervals + higher limits
+  
+  Free tier: Use `contract-ticker` for current data only
+</Info>
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="contract-ticker" icon="chart-line" href="/api/contract-ticker">
+    Get current ticker data by contract
+  </Card>
+  <Card title="ticker-history" icon="clock-rotate-left" href="/api/ticker-history">
+    Get historical ticker data by coin ID
+  </Card>
+</CardGroup>
+
+## Notes
+
+- Requires a valid API key from Starter plan or higher
+- Historical data availability depends on when the token was listed
+- 5-minute intervals are limited to recent data (last 30 days typically)
+- Use `--limit` to control data volume and API credits

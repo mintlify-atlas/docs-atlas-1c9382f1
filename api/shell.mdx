@@ -1,0 +1,276 @@
+---
+title: shell
+description: Interactive REPL shell for CoinPaprika CLI
+icon: terminal
+---
+
+## Overview
+
+Launch an interactive shell (REPL) that allows you to run CoinPaprika CLI commands without typing `coinpaprika-cli` prefix each time. Perfect for exploration and rapid testing.
+
+## Usage
+
+```bash
+coinpaprika-cli shell
+```
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="No Prefix Required" icon="wand-magic-sparkles">
+    Type commands directly: `ticker btc-bitcoin` instead of `coinpaprika-cli ticker btc-bitcoin`
+  </Card>
+  <Card title="Command History" icon="clock-rotate-left">
+    Use up/down arrows to navigate previous commands
+  </Card>
+  <Card title="Persistent Session" icon="link">
+    API key and settings preserved across commands
+  </Card>
+  <Card title="Quick Exit" icon="door-open">
+    Type `exit`, `quit`, or press Ctrl+D to leave
+  </Card>
+</CardGroup>
+
+## Examples
+
+### Start the shell
+
+```bash
+coinpaprika-cli shell
+```
+
+**Output:**
+```
+coinpaprika-cli interactive shell — type commands without 'coinpaprika-cli' prefix
+Type 'exit' or 'quit' to leave. Ctrl+D also exits.
+
+coinpaprika>
+```
+
+### Run commands interactively
+
+```bash
+coinpaprika> global
+# Shows global market data
+
+coinpaprika> ticker btc-bitcoin
+# Shows Bitcoin ticker
+
+coinpaprika> tickers --limit 10
+# Shows top 10 tickers
+
+coinpaprika> exit
+# Exits the shell
+```
+
+### Using flags and options
+
+```bash
+coinpaprika> ticker eth-ethereum --output json
+# JSON output works normally
+
+coinpaprika> ohlcv btc-bitcoin --start 2024-01-01 --limit 30
+# All flags are supported
+
+coinpaprika> search bitcoin --categories currencies --limit 5
+# Complex commands with multiple arguments
+```
+
+## Shell Commands
+
+<ParamField path="exit" type="command">
+  Exit the interactive shell
+</ParamField>
+
+<ParamField path="quit" type="command">
+  Exit the interactive shell (alias for `exit`)
+</ParamField>
+
+<ParamField path="Ctrl+D" type="shortcut">
+  Exit the interactive shell (EOF signal)
+</ParamField>
+
+<ParamField path="Ctrl+C" type="shortcut">
+  Interrupt current command (shell remains open)
+</ParamField>
+
+<ParamField path="↑ / ↓" type="shortcut">
+  Navigate command history
+</ParamField>
+
+## How It Works
+
+1. **Launch shell:** `coinpaprika-cli shell`
+2. **Prompt appears:** `coinpaprika>`
+3. **Type commands:** Omit the `coinpaprika-cli` prefix
+4. **Commands execute:** Results displayed immediately
+5. **Repeat:** Run as many commands as needed
+6. **Exit:** Type `exit` or press Ctrl+D
+
+## Use Cases
+
+### Exploration and Learning
+
+```bash
+coinpaprika> coins --limit 5
+# Browse available coins
+
+coinpaprika> coin btc-bitcoin
+# Explore coin details
+
+coinpaprika> ticker btc-bitcoin
+# Check price data
+```
+
+### Rapid Testing
+
+```bash
+# Test different quote currencies
+coinpaprika> ticker btc-bitcoin --quotes USD
+coinpaprika> ticker btc-bitcoin --quotes EUR
+coinpaprika> ticker btc-bitcoin --quotes BTC,ETH
+```
+
+### Data Comparison
+
+```bash
+coinpaprika> ticker btc-bitcoin
+coinpaprika> ticker eth-ethereum
+coinpaprika> ticker ada-cardano
+# Compare multiple assets quickly
+```
+
+### Development Workflow
+
+```bash
+# Keep shell open while developing
+coinpaprika> ticker btc-bitcoin --output json
+# Test JSON structure
+
+coinpaprika> ticker btc-bitcoin --raw
+# Test raw output mode
+```
+
+## Advanced Features
+
+### Command History
+
+The shell remembers commands within the session:
+
+```bash
+coinpaprika> ticker btc-bitcoin
+# Press ↑ to recall
+# Edit and run variations
+```
+
+### Quoting Arguments
+
+Use quotes for arguments with spaces:
+
+```bash
+coinpaprika> search "bitcoin cash"
+coinpaprika> search 'wrapped btc'
+```
+
+### Error Handling
+
+Errors don't exit the shell:
+
+```bash
+coinpaprika> ticker invalid-coin-id
+Error: Not found
+
+coinpaprika> # Shell still running, try another command
+```
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `↑` | Previous command |
+| `↓` | Next command |
+| `←` `→` | Move cursor |
+| `Ctrl+A` | Beginning of line |
+| `Ctrl+E` | End of line |
+| `Ctrl+C` | Interrupt (doesn't exit) |
+| `Ctrl+D` | Exit shell |
+| `Ctrl+L` | Clear screen (if supported) |
+
+## Shell vs Direct Commands
+
+<CodeGroup>
+  ```bash Direct Commands
+  coinpaprika-cli ticker btc-bitcoin
+  coinpaprika-cli ticker eth-ethereum
+  coinpaprika-cli ticker ada-cardano
+  ```
+
+  ```bash Interactive Shell
+  coinpaprika-cli shell
+  # Then:
+  ticker btc-bitcoin
+  ticker eth-ethereum
+  ticker ada-cardano
+  exit
+  ```
+</CodeGroup>
+
+## Configuration
+
+The shell respects all configuration settings:
+
+- **API key:** Uses key from config file or environment
+- **Global flags:** Can be specified per-command
+- **Output format:** Defaults to `table`, override with `--output json`
+
+## Limitations
+
+<Warning>
+  - Shell commands don't support piping to external tools (use direct CLI for that)
+  - No command chaining with `&&` or `||`
+  - No shell scripting features (variables, loops, etc.)
+  - For automation, use the direct CLI interface
+</Warning>
+
+## Exit Methods
+
+<Tabs>
+  <Tab title="exit command">
+    ```bash
+    coinpaprika> exit
+    ```
+    Clean exit with command
+  </Tab>
+  
+  <Tab title="quit command">
+    ```bash
+    coinpaprika> quit
+    ```
+    Alias for exit
+  </Tab>
+  
+  <Tab title="Ctrl+D">
+    Press `Ctrl+D` (EOF signal)
+    
+    Unix standard for exiting interactive shells
+  </Tab>
+</Tabs>
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="commands" icon="circle-question" href="/commands/overview">
+    View available commands
+  </Card>
+  <Card title="config" icon="gear" href="/api/config">
+    Configure API key for shell sessions
+  </Card>
+</CardGroup>
+
+## Notes
+
+- History is only saved for the current session (not persistent)
+- The shell is built with [rustyline](https://github.com/kkawakam/rustyline) (readline-like library)
+- All commands work the same as the direct CLI
+- Global flags like `--output` and `--api-key` work per-command
+- Perfect for interactive tutorials and demonstrations

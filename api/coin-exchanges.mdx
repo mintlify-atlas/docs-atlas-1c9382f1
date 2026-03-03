@@ -1,0 +1,132 @@
+---
+title: 'coin-exchanges'
+description: 'Get exchanges where a coin is traded'
+---
+
+## Overview
+
+Returns a list of cryptocurrency exchanges where a specific coin is available for trading, including volume share data and supported fiat currencies.
+
+## Usage
+
+```bash
+coinpaprika-cli coin-exchanges <COIN_ID> [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="coin_id" type="string" required>
+  Coin ID in format `symbol-name` (e.g., `btc-bitcoin`)
+</ParamField>
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of exchanges to return
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get exchanges trading Bitcoin
+
+```bash
+coinpaprika-cli coin-exchanges btc-bitcoin
+```
+
+### Get top 10 exchanges for Ethereum
+
+```bash
+coinpaprika-cli coin-exchanges eth-ethereum --limit 10
+```
+
+### Get exchanges in JSON format
+
+```bash
+coinpaprika-cli coin-exchanges sol-solana --output json
+```
+
+## Example Output
+
+### Table Format
+
+```
+┌────────────────────┬──────────────────────────┬─────────────────┬──────────────┐
+│ ID                 │ Name                     │ Volume Share    │ Fiat Support │
+├────────────────────┼──────────────────────────┼─────────────────┼──────────────┤
+│ binance            │ Binance                  │ 23.45%          │ USD, EUR     │
+│ coinbase-exchange  │ Coinbase Exchange        │ 18.32%          │ USD, EUR, GBP│
+│ kraken             │ Kraken                   │ 12.87%          │ USD, EUR     │
+│ okex               │ OKX                      │ 10.23%          │ USD          │
+│ huobi              │ Huobi Global             │ 8.45%           │ USD, EUR     │
+└────────────────────┴──────────────────────────┴─────────────────┴──────────────┘
+```
+
+### JSON Format
+
+```json
+[
+  {
+    "id": "binance",
+    "name": "Binance",
+    "adjusted_volume_24h_share": 23.45,
+    "fiats": [
+      {
+        "name": "US Dollar",
+        "symbol": "USD"
+      },
+      {
+        "name": "Euro",
+        "symbol": "EUR"
+      }
+    ]
+  },
+  {
+    "id": "coinbase-exchange",
+    "name": "Coinbase Exchange",
+    "adjusted_volume_24h_share": 18.32,
+    "fiats": [
+      {
+        "name": "US Dollar",
+        "symbol": "USD"
+      },
+      {
+        "name": "Euro",
+        "symbol": "EUR"
+      },
+      {
+        "name": "British Pound",
+        "symbol": "GBP"
+      }
+    ]
+  }
+]
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique exchange identifier |
+| `name` | string | Exchange name |
+| `adjusted_volume_24h_share` | number | Exchange's share of total 24h volume (percentage) |
+| `fiats` | array | Supported fiat currencies |
+| `fiats[].name` | string | Fiat currency name |
+| `fiats[].symbol` | string | Fiat currency symbol |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/coins/{coin_id}/exchanges
+```
+
+## Related Commands
+
+- [coin-detail](/api/coin-detail) - Get detailed coin information
+- [coin-markets](/api/coin-markets) - Get specific markets for a coin
+- [coins-list](/api/coins-list) - List all coins

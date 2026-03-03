@@ -1,0 +1,401 @@
+---
+title: 'Output Formats'
+description: 'Control how the CoinPaprika CLI displays data with table and JSON output modes'
+---
+
+## Overview
+
+The CoinPaprika CLI supports two output formats: **Table** (human-readable) and **JSON** (machine-readable). You can control the output format globally using the `--output` flag.
+
+## Output Modes
+
+<Tabs>
+  <Tab title="Table (Default)">
+    The default output format displays data in formatted, human-readable tables with automatic column width adjustment and styling.
+
+    ### Example
+
+    ```bash
+    coinpaprika-cli ticker btc-bitcoin
+    ```
+
+    Output:
+    ```
+    ╭─────────────────────┬──────────────────────────────────────────────────────╮
+    │ ID                  │ btc-bitcoin                                          │
+    │ Name                │ Bitcoin                                              │
+    │ Symbol              │ BTC                                                  │
+    │ Rank                │ 1                                                    │
+    │ Price (USD)         │ $97234.56                                            │
+    │ Volume 24h          │ $42.1B                                               │
+    │ Market Cap          │ $1.9T                                                │
+    │ Change 24h          │ +2.34%                                               │
+    │ Change 7d           │ +5.67%                                               │
+    │ ATH                 │ $108,135                                             │
+    │ ATH Date            │ 2024-12-17                                           │
+    ╰─────────────────────┴──────────────────────────────────────────────────────╯
+
+    Data: CoinPaprika (coinpaprika.com) · Free API: api.coinpaprika.com
+    ```
+
+    ### Features
+
+    - Rounded table borders for better readability
+    - Automatic text wrapping for long values
+    - Smart number formatting (K, M, B, T suffixes)
+    - Attribution footer included
+
+    ### Best For
+
+    - Interactive terminal usage
+    - Quick data inspection
+    - Human consumption
+    - Screenshots and documentation
+  </Tab>
+  
+  <Tab title="JSON">
+    JSON output provides structured, machine-readable data with metadata included by default.
+
+    ### Example
+
+    ```bash
+    coinpaprika-cli --output json ticker btc-bitcoin
+    ```
+
+    Output:
+    ```json
+    {
+      "data": {
+        "id": "btc-bitcoin",
+        "name": "Bitcoin",
+        "symbol": "BTC",
+        "rank": 1,
+        "quotes": {
+          "USD": {
+            "price": 97234.56,
+            "volume_24h": 42123456789.12,
+            "market_cap": 1900000000000.00,
+            "percent_change_24h": 2.34,
+            "percent_change_7d": 5.67
+          }
+        }
+      },
+      "_meta": {
+        "source": "CoinPaprika",
+        "url": "https://coinpaprika.com/coin/btc-bitcoin",
+        "api_docs": "https://api.coinpaprika.com",
+        "attribution": "Powered by CoinPaprika · Free crypto market data",
+        "timestamp": "2024-03-15T10:30:45Z"
+      }
+    }
+    ```
+
+    ### Features
+
+    - Pretty-printed JSON (human-readable)
+    - Metadata wrapper with attribution and timestamp
+    - Full precision for numbers (no rounding)
+    - Standard JSON format for parsing
+
+    ### Best For
+
+    - API integrations
+    - Data processing pipelines
+    - Logging and debugging
+    - When you need attribution metadata
+  </Tab>
+  
+  <Tab title="Raw JSON">
+    Raw JSON mode removes the metadata wrapper and returns only the data payload. This is ideal for shell scripting and data pipelines.
+
+    ### Example
+
+    ```bash
+    coinpaprika-cli --output json --raw ticker btc-bitcoin
+    ```
+
+    Output:
+    ```json
+    {
+      "id": "btc-bitcoin",
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "rank": 1,
+      "quotes": {
+        "USD": {
+          "price": 97234.56,
+          "volume_24h": 42123456789.12,
+          "market_cap": 1900000000000.00,
+          "percent_change_24h": 2.34,
+          "percent_change_7d": 5.67
+        }
+      }
+    }
+    ```
+
+    <Note>
+      The `--raw` flag only affects JSON output. It has no effect on table output.
+    </Note>
+
+    ### Features
+
+    - No metadata wrapper
+    - Direct API response format
+    - Smaller payload size
+    - Easier to pipe to `jq` and other tools
+
+    ### Best For
+
+    - Shell scripts
+    - Data extraction with `jq`
+    - Automated systems
+    - When attribution metadata is not needed
+  </Tab>
+</Tabs>
+
+## Usage Examples
+
+### Basic Output Control
+
+```bash
+# Default table output
+coinpaprika-cli ticker btc-bitcoin
+
+# JSON with metadata
+coinpaprika-cli --output json ticker btc-bitcoin
+
+# Raw JSON (no metadata)
+coinpaprika-cli --output json --raw ticker btc-bitcoin
+```
+
+### Scripting with jq
+
+Extract specific fields using `jq`:
+
+```bash
+# Get just the price
+coinpaprika-cli --output json --raw ticker btc-bitcoin | jq -r '.quotes.USD.price'
+
+# Get name and price
+coinpaprika-cli --output json --raw ticker btc-bitcoin | jq '{name, price: .quotes.USD.price}'
+
+# Filter multiple tickers
+coinpaprika-cli --output json --raw tickers --limit 10 | jq '.[] | select(.rank <= 5)'
+```
+
+### Save to File
+
+```bash
+# Save JSON to file
+coinpaprika-cli --output json --raw ticker btc-bitcoin > btc-data.json
+
+# Save multiple tickers
+coinpaprika-cli --output json --raw tickers --limit 100 > top-100-coins.json
+```
+
+### Compare With and Without Metadata
+
+<CodeGroup>
+```bash With Metadata
+coinpaprika-cli --output json ticker btc-bitcoin | jq '.'
+
+# Output includes _meta wrapper:
+# {
+#   "data": { ... },
+#   "_meta": {
+#     "source": "CoinPaprika",
+#     "timestamp": "..."
+#   }
+# }
+```
+
+```bash Without Metadata (Raw)
+coinpaprika-cli --output json --raw ticker btc-bitcoin | jq '.'
+
+# Output is direct data only:
+# {
+#   "id": "btc-bitcoin",
+#   "name": "Bitcoin",
+#   ...
+# }
+```
+</CodeGroup>
+
+## How It Works
+
+The output format is controlled by two global CLI flags defined in `src/main.rs:29-39`:
+
+```rust
+/// Output format: table or json
+#[arg(short, long, global = true, default_value = "table")]
+pub(crate) output: OutputFormat,
+
+/// JSON output without _meta wrapper (for scripts/piping)
+#[arg(long, global = true, default_value = "false")]
+pub(crate) raw: bool,
+```
+
+The `OutputFormat` enum is defined in `src/output/mod.rs:8-12`:
+
+```rust
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+pub enum OutputFormat {
+    Table,
+    Json,
+}
+```
+
+### JSON Output Implementation
+
+JSON output is handled by the `print_json_wrapped` function in `src/output/mod.rs:111-119`:
+
+```rust
+pub fn print_json_wrapped<T: Serialize>(data: &T, meta: ResponseMeta, raw: bool) -> Result<()> {
+    if raw {
+        println!("{}", serde_json::to_string_pretty(data)?);
+    } else {
+        let wrapped = WrappedResponse { data, _meta: meta };
+        println!("{}", serde_json::to_string_pretty(&wrapped)?);
+    }
+    Ok(())
+}
+```
+
+### Metadata Structure
+
+The metadata wrapper includes attribution and timestamp information:
+
+```rust
+#[derive(Serialize)]
+pub struct ResponseMeta {
+    pub source: String,           // "CoinPaprika"
+    pub url: String,              // Entity URL on coinpaprika.com
+    pub api_docs: String,         // "https://api.coinpaprika.com"
+    pub attribution: String,      // Attribution text
+    pub timestamp: String,        // ISO 8601 timestamp
+}
+```
+
+## Formatting Details
+
+### Table Formatting
+
+The CLI uses smart formatting for different data types in table output:
+
+<Steps>
+  <Step title="Currency Values">
+    Large numbers use suffixes (K, M, B, T) for readability.
+    
+    - `$1,500,000,000` → `$1.5B`
+    - `$42,000,000` → `$42.0M`
+    - `$5,200` → `$5.2K`
+  </Step>
+  
+  <Step title="Prices">
+    Precision adjusts based on value size.
+    
+    - `≥ $1.00` → 2 decimals (`$97234.56`)
+    - `≥ $0.01` → 4 decimals (`$0.1234`)
+    - `< $0.01` → 8 decimals (`$0.00012340`)
+  </Step>
+  
+  <Step title="Percentages">
+    Includes + prefix for positive values.
+    
+    - Positive: `+2.34%`
+    - Negative: `-1.23%`
+  </Step>
+  
+  <Step title="Supply/Volume">
+    Uses suffixes like currency values.
+    
+    - `1,500,000,000` → `1.5B`
+    - `21,000,000` → `21.0M`
+  </Step>
+</Steps>
+
+These formatting functions are defined in `src/output/mod.rs:61-103`.
+
+## Error Handling
+
+Errors are formatted according to the output mode:
+
+### Table Mode
+
+Errors are printed to stderr:
+
+```bash
+coinpaprika-cli ticker invalid-coin
+Error: Not found. Check the ID format (e.g., btc-bitcoin for Bitcoin)
+```
+
+### JSON Mode
+
+Errors are returned as JSON objects:
+
+```bash
+coinpaprika-cli --output json ticker invalid-coin
+{
+  "error": "Not found. Check the ID format (e.g., btc-bitcoin for Bitcoin)"
+}
+```
+
+This is handled in `src/main.rs:418-430`:
+
+```rust
+if let Err(e) = run(cli).await {
+    match output {
+        OutputFormat::Json => {
+            println!(
+                "{}",
+                serde_json::json!({"error": e.to_string()})
+            );
+        }
+        OutputFormat::Table => {
+            eprintln!("Error: {e}");
+        }
+    }
+    return ExitCode::FAILURE;
+}
+```
+
+## Best Practices
+
+<Steps>
+  <Step title="Use Table for Interactive Sessions">
+    When running commands manually in a terminal, stick with the default table output for better readability.
+  </Step>
+  
+  <Step title="Use JSON + Raw for Scripting">
+    Always use `--output json --raw` in scripts to avoid parsing the metadata wrapper.
+    
+    ```bash
+    #!/bin/bash
+    price=$(coinpaprika-cli --output json --raw ticker btc-bitcoin | jq -r '.quotes.USD.price')
+    echo "BTC price: $price"
+    ```
+  </Step>
+  
+  <Step title="Include Metadata for Logging">
+    Use JSON without `--raw` when you want to preserve attribution and timestamps in logs.
+  </Step>
+  
+  <Step title="Set Shell Aliases">
+    Create aliases for common output patterns:
+    
+    ```bash
+    alias cp='coinpaprika-cli'
+    alias cpj='coinpaprika-cli --output json --raw'
+    ```
+  </Step>
+</Steps>
+
+## Related Commands
+
+All commands support the `--output` and `--raw` flags:
+
+- `coinpaprika-cli global` - Market overview
+- `coinpaprika-cli tickers` - All tickers
+- `coinpaprika-cli ticker <id>` - Single ticker
+- `coinpaprika-cli search <query>` - Search results
+- `coinpaprika-cli ohlcv <id>` - Historical OHLCV data

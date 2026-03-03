@@ -1,0 +1,121 @@
+---
+title: CoinPaprika CLI
+description: Free crypto market data from your terminal — 8,000+ coins, real-time prices, OHLCV, exchanges
+---
+
+# CoinPaprika CLI
+
+Access comprehensive crypto market data directly from your terminal. Built for developers, traders, and AI agents who need fast, reliable cryptocurrency information.
+
+<CardGroup cols={2}>
+  <Card title="Get started" icon="rocket" href="/installation">
+    Install the CLI in seconds with a single command
+  </Card>
+  <Card title="Quick start" icon="bolt" href="/quickstart">
+    Run your first commands and explore market data
+  </Card>
+  <Card title="API reference" icon="code" href="/api/global">
+    Browse all available commands and options
+  </Card>
+  <Card title="Commands guide" icon="wrench" href="/commands/overview">
+    Explore command usage and examples
+  </Card>
+</CardGroup>
+
+## Why CoinPaprika CLI?
+
+<CardGroup cols={2}>
+  <Card title="8,000+ cryptocurrencies" icon="coins">
+    Access real-time price data, market caps, volumes, and more for thousands of coins
+  </Card>
+  <Card title="Free tier included" icon="gift">
+    20,000 API calls per month with no API key required — perfect for getting started
+  </Card>
+  <Card title="Real-time prices" icon="chart-line">
+    Get live ticker data, market overviews, and exchange information instantly
+  </Card>
+  <Card title="Historical data" icon="clock-rotate-left">
+    Access OHLCV data and historical tickers with paid plans for deeper analysis
+  </Card>
+  <Card title="Multiple output formats" icon="table">
+    Display data as formatted tables or export as JSON for scripting and automation
+  </Card>
+  <Card title="Developer friendly" icon="terminal">
+    Simple commands, powerful features — built with Rust for speed and reliability
+  </Card>
+</CardGroup>
+
+## Key features
+
+### Market data at your fingertips
+
+Query global market statistics, search coins and exchanges, get real-time prices, and track market movements without leaving your terminal.
+
+```bash
+coinpaprika-cli global
+coinpaprika-cli ticker btc-bitcoin
+coinpaprika-cli search ethereum
+```
+
+### Flexible authentication
+
+Choose how you provide your API key, or skip it entirely on the free tier:
+
+- **Config file**: Run `coinpaprika-cli onboard` to save your key to `~/.coinpaprika/config.json`
+- **Environment variable**: Set `COINPAPRIKA_API_KEY=your-key`
+- **CLI flag**: Pass `--api-key your-key` with any command
+
+<Note>
+The free tier works without an API key — just install and start querying data.
+</Note>
+
+### Output formats for any workflow
+
+Switch between human-readable tables and machine-readable JSON:
+
+```bash
+# Table format (default)
+coinpaprika-cli ticker btc-bitcoin
+
+# JSON with metadata
+coinpaprika-cli --output json ticker btc-bitcoin
+
+# Raw JSON for piping to other tools
+coinpaprika-cli --output json --raw ticker btc-bitcoin | jq '.price'
+```
+
+## Rate limits and pricing
+
+<Tip>
+Run `coinpaprika-cli plans` anytime to see free tier details and paid plan options.
+</Tip>
+
+**Free tier**: 20,000 calls per month with no API key required
+
+**Paid plans** unlock:
+- Historical data with customizable intervals (5m, 15m, 1h, 24h)
+- Higher rate limits for production applications
+- Business features like ID mappings and changelog tracking
+
+View full pricing at [coinpaprika.com/api/pricing](https://coinpaprika.com/api/pricing)
+
+## What you can do
+
+- **Market overview**: Global stats, market cap, BTC dominance, 24h volume
+- **Coin data**: Details, tickers, events, exchanges, markets for any coin
+- **Historical data**: OHLCV charts, ticker history with Starter+ plans
+- **Exchanges**: List exchanges, get details, view markets and trading pairs
+- **Search**: Find coins, exchanges, people, and tags by name or symbol
+- **Contracts**: Query ERC-20 and other smart contract tokens by address
+- **Conversions**: Calculate currency conversions between any pair
+
+## Ready to start?
+
+<CardGroup cols={2}>
+  <Card title="Install now" icon="download" href="/installation">
+    Get up and running in under a minute
+  </Card>
+  <Card title="Quick start guide" icon="play" href="/quickstart">
+    Learn the essential commands
+  </Card>
+</CardGroup>

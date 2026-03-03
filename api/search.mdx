@@ -1,0 +1,246 @@
+---
+title: "search"
+description: "Search for coins, exchanges, people, and tags"
+---
+
+## Overview
+
+Search across all CoinPaprika data including cryptocurrencies, exchanges, ICOs, people, and tags. This is the quickest way to find specific entities when you don't know their exact ID.
+
+## Usage
+
+```bash
+coinpaprika-cli search <query> [OPTIONS]
+```
+
+## Arguments
+
+<ParamField path="query" type="string" required>
+  Search term (e.g., coin name, symbol, exchange name, person name)
+</ParamField>
+
+## Options
+
+<ParamField query="categories" type="string">
+  Comma-separated list of categories to search. Options:
+  - `currencies` - Cryptocurrencies
+  - `exchanges` - Exchange platforms
+  - `icos` - Initial Coin Offerings
+  - `people` - Industry figures
+  - `tags` - Category tags
+  
+  If not specified, searches all categories
+</ParamField>
+
+<ParamField query="limit" type="number" default="10">
+  Maximum number of results per category
+</ParamField>
+
+<ParamField query="modifier" type="string">
+  Search modifier. Use `symbol_search` to search by ticker symbol only
+</ParamField>
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper
+</ParamField>
+
+## Examples
+
+### Search for Bitcoin
+
+```bash
+coinpaprika-cli search bitcoin
+```
+
+### Search for Ethereum in specific categories
+
+```bash
+coinpaprika-cli search ethereum --categories currencies,exchanges --limit 5
+```
+
+### Search by symbol only
+
+```bash
+coinpaprika-cli search BTC --modifier symbol_search
+```
+
+### Search for an exchange
+
+```bash
+coinpaprika-cli search binance --categories exchanges
+```
+
+### Search for a person
+
+```bash
+coinpaprika-cli search vitalik --categories people
+```
+
+### Search for DeFi projects
+
+```bash
+coinpaprika-cli search defi --categories currencies,tags --limit 20
+```
+
+### Get comprehensive search results as JSON
+
+```bash
+coinpaprika-cli search "layer 2" --output json
+```
+
+## Response
+
+The command returns results grouped by category:
+
+```json
+{
+  "currencies": [
+    {
+      "id": "btc-bitcoin",
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "rank": 1,
+      "is_active": true,
+      "type": "coin"
+    },
+    {
+      "id": "bch-bitcoin-cash",
+      "name": "Bitcoin Cash",
+      "symbol": "BCH",
+      "rank": 25,
+      "is_active": true,
+      "type": "coin"
+    }
+  ],
+  "exchanges": [
+    {
+      "id": "bitcoin-com",
+      "name": "Bitcoin.com Exchange"
+    }
+  ],
+  "icos": [],
+  "people": [],
+  "tags": [
+    {
+      "id": "bitcoin-fork",
+      "name": "Bitcoin Fork",
+      "coin_counter": 15,
+      "ico_counter": 2
+    }
+  ]
+}
+```
+
+## Response Fields
+
+### Currency Results
+
+<ResponseField name="id" type="string">
+  Unique coin identifier (use this for other commands)
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Full name of the cryptocurrency
+</ResponseField>
+
+<ResponseField name="symbol" type="string">
+  Trading symbol/ticker
+</ResponseField>
+
+<ResponseField name="rank" type="number">
+  Market cap rank
+</ResponseField>
+
+<ResponseField name="is_active" type="boolean">
+  Whether the coin is currently active
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Type: `coin` or `token`
+</ResponseField>
+
+### Exchange Results
+
+<ResponseField name="id" type="string">
+  Unique exchange identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Exchange name
+</ResponseField>
+
+### People Results
+
+<ResponseField name="id" type="string">
+  Unique person identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Person's full name
+</ResponseField>
+
+<ResponseField name="teams_count" type="number">
+  Number of projects associated with this person
+</ResponseField>
+
+### Tag Results
+
+<ResponseField name="id" type="string">
+  Unique tag identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Tag display name
+</ResponseField>
+
+<ResponseField name="coin_counter" type="number">
+  Number of coins in this category
+</ResponseField>
+
+<ResponseField name="ico_counter" type="number">
+  Number of ICOs in this category
+</ResponseField>
+
+## Notes
+
+- Search is case-insensitive
+- Results are ranked by relevance
+- Use `--categories` to narrow your search and improve performance
+- The `symbol_search` modifier is useful when you know the exact ticker
+- Empty arrays are returned for categories with no matches
+- Available on free tier
+
+## Search Tips
+
+1. **Find coin ID**: Use search to discover the exact coin ID for other commands
+   ```bash
+   coinpaprika-cli search cardano
+   # Returns: ada-cardano
+   # Then use: coinpaprika-cli coin ada-cardano
+   ```
+
+2. **Symbol search**: When searching by ticker, use the modifier
+   ```bash
+   coinpaprika-cli search ETH --modifier symbol_search
+   ```
+
+3. **Category filtering**: Limit search to specific categories for faster results
+   ```bash
+   coinpaprika-cli search binance --categories exchanges
+   ```
+
+4. **Fuzzy matching**: Search works with partial names
+   ```bash
+   coinpaprika-cli search "bit" --limit 5
+   ```
+
+## Related Commands
+
+- [`coin`](/api/coin) - Get details about a specific coin
+- [`exchange`](/api/exchange-detail) - Get exchange information
+- [`person`](/api/person) - Get person details
+- [`tags`](/api/tags) - Browse all tags

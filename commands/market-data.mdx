@@ -1,0 +1,142 @@
+---
+title: Global Market Data
+description: Get global cryptocurrency market overview including market cap, volume, and Bitcoin dominance
+---
+
+## Command
+
+```bash
+coinpaprika-cli global
+```
+
+Get a comprehensive overview of the global cryptocurrency market.
+
+## Usage
+
+### Basic Usage
+
+```bash
+coinpaprika-cli global
+```
+
+### JSON Output
+
+```bash
+coinpaprika-cli global --output json
+```
+
+### Raw JSON for Scripts
+
+```bash
+coinpaprika-cli global --output json --raw
+```
+
+## Response Data
+
+The global market data includes:
+
+### Market Metrics
+- **Market Cap (USD)** - Total cryptocurrency market capitalization
+- **24h Volume (USD)** - Total trading volume in last 24 hours
+- **Bitcoin Dominance** - Bitcoin's percentage of total market cap
+- **Number of Cryptocurrencies** - Total tracked cryptocurrencies
+
+### All-Time Highs
+- **Market Cap ATH** - Highest market cap value and date
+- **Volume 24h ATH** - Highest 24h volume and date
+- **ATH Percentages** - Distance from ATH values
+
+### Recent Changes
+- **Market Cap Change (24h)** - Percentage change in market cap
+- **Volume Change (24h)** - Percentage change in volume
+- **Last Updated** - Unix timestamp of last data update
+
+## Examples
+
+### Get Market Overview
+
+<CodeGroup>
+```bash Table Format
+coinpaprika-cli global
+```
+
+```bash JSON Format
+coinpaprika-cli global --output json
+```
+</CodeGroup>
+
+### Extract Specific Metrics
+
+```bash
+# Get Bitcoin dominance
+coinpaprika-cli global --output json --raw | jq '.bitcoin_dominance_percentage'
+
+# Get total market cap
+coinpaprika-cli global --output json --raw | jq '.market_cap_usd'
+
+# Get 24h volume change
+coinpaprika-cli global --output json --raw | jq '.volume_24h_change_24h'
+```
+
+### Monitor Market Changes
+
+```bash
+#!/bin/bash
+# Track Bitcoin dominance over time
+while true; do
+  dominance=$(coinpaprika-cli global --output json --raw | jq -r '.bitcoin_dominance_percentage')
+  echo "$(date): BTC Dominance = ${dominance}%"
+  sleep 600  # Check every 10 minutes
+done
+```
+
+## Response Example
+
+```json
+{
+  "market_cap_usd": 2847936819533.45,
+  "volume_24h_usd": 124567890123.45,
+  "bitcoin_dominance_percentage": 54.32,
+  "cryptocurrencies_number": 8234,
+  "market_cap_ath_value": 3021234567890.12,
+  "market_cap_ath_date": "2021-11-10T14:24:11Z",
+  "volume_24h_ath_value": 456789012345.67,
+  "volume_24h_ath_date": "2021-05-19T16:00:00Z",
+  "volume_24h_percent_from_ath": -72.68,
+  "volume_24h_percent_to_ath": 266.31,
+  "market_cap_change_24h": 2.15,
+  "volume_24h_change_24h": -5.43,
+  "last_updated": 1709481234
+}
+```
+
+## Use Cases
+
+### Market Analysis
+- Track overall market sentiment and trends
+- Monitor Bitcoin dominance fluctuations
+- Compare current metrics to all-time highs
+
+### Dashboards & Monitoring
+- Display real-time market statistics
+- Create market health indicators
+- Alert on significant market changes
+
+### Data Collection
+- Collect historical market snapshots
+- Build market trend databases
+- Analyze market cycle patterns
+
+## API Details
+
+- **Endpoint:** `/global`
+- **Method:** GET
+- **Rate Limit:** Counts toward your monthly limit
+- **Update Frequency:** ~10 minutes (free tier)
+- **API Key:** Not required (optional for higher limits)
+
+## Related Commands
+
+- [`tickers`](/commands/tickers) - Get individual coin prices
+- [`coins`](/commands/coins) - List all available coins
+- [`status`](/commands/utilities#status) - Check API health

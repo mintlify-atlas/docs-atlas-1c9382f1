@@ -1,0 +1,135 @@
+---
+title: contract-ticker
+description: Get ticker data for a specific contract address
+icon: chart-line
+---
+
+## Overview
+
+Retrieve real-time price and market data for a cryptocurrency by its smart contract address.
+
+## Usage
+
+```bash
+coinpaprika-cli contract-ticker <platform_id> <address>
+```
+
+## Arguments
+
+<ParamField path="platform_id" type="string" required>
+  Platform ID (e.g., `eth-ethereum`, `bnb-binance-coin`)
+</ParamField>
+
+<ParamField path="address" type="string" required>
+  Smart contract address (e.g., `0xdac17f958d2ee523a2206206994597c13d831ec7`)
+</ParamField>
+
+## Options
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper (for scripts/piping)
+</ParamField>
+
+## Examples
+
+### Get USDT ticker (Ethereum)
+
+```bash
+coinpaprika-cli contract-ticker eth-ethereum 0xdac17f958d2ee523a2206206994597c13d831ec7
+```
+
+### Get token data on BSC
+
+```bash
+coinpaprika-cli contract-ticker bnb-binance-coin 0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d
+```
+
+### JSON output for automation
+
+```bash
+coinpaprika-cli contract-ticker eth-ethereum 0xdac17f958d2ee523a2206206994597c13d831ec7 \
+  --output json --raw
+```
+
+## Response Fields
+
+<ResponseField name="id" type="string">
+  CoinPaprika coin ID
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Token name
+</ResponseField>
+
+<ResponseField name="symbol" type="string">
+  Token symbol
+</ResponseField>
+
+<ResponseField name="rank" type="number">
+  Market cap rank
+</ResponseField>
+
+<ResponseField name="circulating_supply" type="number">
+  Circulating supply
+</ResponseField>
+
+<ResponseField name="total_supply" type="number">
+  Total supply
+</ResponseField>
+
+<ResponseField name="max_supply" type="number">
+  Maximum supply
+</ResponseField>
+
+<ResponseField name="quotes" type="object">
+  Price data in various currencies (USD by default)
+  
+  <Expandable title="Quote fields">
+    <ResponseField name="price" type="number">
+      Current price
+    </ResponseField>
+    <ResponseField name="volume_24h" type="number">
+      24-hour trading volume
+    </ResponseField>
+    <ResponseField name="market_cap" type="number">
+      Market capitalization
+    </ResponseField>
+    <ResponseField name="percent_change_24h" type="number">
+      24-hour price change percentage
+    </ResponseField>
+    <ResponseField name="percent_change_7d" type="number">
+      7-day price change percentage
+    </ResponseField>
+    <ResponseField name="ath_price" type="number">
+      All-time high price
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/contracts/{platform_id}/{address}
+```
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="contracts" icon="file-contract" href="/api/contracts">
+    List contracts on a platform
+  </Card>
+  <Card title="contract-history" icon="clock-rotate-left" href="/api/contract-history">
+    Get historical data by contract (Starter+)
+  </Card>
+</CardGroup>
+
+## Notes
+
+- Contract addresses are case-insensitive but typically lowercase
+- Works with any ERC-20, BEP-20, or similar token standard
+- Data updates every ~10 minutes on free tier
+- Returns 404 if contract is not tracked by CoinPaprika

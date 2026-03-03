@@ -1,0 +1,190 @@
+---
+title: Installation
+description: Install the CoinPaprika CLI on Linux, macOS, or Windows
+---
+
+# Installation
+
+Get the CoinPaprika CLI installed on your system in under a minute.
+
+## Quick install
+
+The fastest way to install is using the official install script, which automatically detects your platform and downloads the latest release:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/coinpaprika/coinpaprika-cli/main/install.sh | sh
+```
+
+<Note>
+This script works on Linux, macOS, and Windows (Git Bash/WSL). It installs to `~/.local/bin` by default.
+</Note>
+
+## What the installer does
+
+<Steps>
+  <Step title="Detect your platform">
+    The script identifies your operating system (Linux, macOS, Windows) and architecture (x86_64, aarch64).
+  </Step>
+  
+  <Step title="Download the latest release">
+    It fetches the latest binary from the [GitHub releases page](https://github.com/coinpaprika/coinpaprika-cli/releases) matching your platform.
+  </Step>
+  
+  <Step title="Install to your system">
+    The binary is extracted and moved to `~/.local/bin` (or `/usr/local/bin` with sudo if needed).
+  </Step>
+  
+  <Step title="Verify PATH configuration">
+    The installer checks if the installation directory is in your PATH and provides instructions if not.
+  </Step>
+</Steps>
+
+## Custom installation directory
+
+You can override the default installation directory by setting the `COINPAPRIKA_INSTALL_DIR` environment variable:
+
+```bash
+export COINPAPRIKA_INSTALL_DIR=/usr/local/bin
+curl -sSL https://raw.githubusercontent.com/coinpaprika/coinpaprika-cli/main/install.sh | sh
+```
+
+## Manual installation
+
+If you prefer to install manually or the script doesn't work for your system:
+
+<Steps>
+  <Step title="Download the release">
+    Visit the [releases page](https://github.com/coinpaprika/coinpaprika-cli/releases) and download the archive for your platform:
+    
+    - **Linux x86_64**: `coinpaprika-cli-vX.X.X-linux-x86_64.tar.gz`
+    - **Linux aarch64**: `coinpaprika-cli-vX.X.X-linux-aarch64.tar.gz`
+    - **macOS x86_64**: `coinpaprika-cli-vX.X.X-darwin-x86_64.tar.gz`
+    - **macOS aarch64**: `coinpaprika-cli-vX.X.X-darwin-aarch64.tar.gz`
+    - **Windows**: `coinpaprika-cli-vX.X.X-windows-x86_64.zip`
+  </Step>
+  
+  <Step title="Extract the archive">
+    <CodeGroup>
+    ```bash Linux/macOS
+    tar xzf coinpaprika-cli-*.tar.gz
+    ```
+    
+    ```bash Windows
+    unzip coinpaprika-cli-*.zip
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Move to PATH">
+    Move the `coinpaprika-cli` binary to a directory in your PATH:
+    
+    <CodeGroup>
+    ```bash Linux/macOS
+    mv coinpaprika-cli ~/.local/bin/
+    chmod +x ~/.local/bin/coinpaprika-cli
+    ```
+    
+    ```bash Windows (Git Bash)
+    mv coinpaprika-cli.exe /usr/bin/
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Add to PATH if needed">
+    If `~/.local/bin` isn't in your PATH, add this to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+    
+    ```bash
+    export PATH="$HOME/.local/bin:$PATH"
+    ```
+    
+    Then reload your shell:
+    
+    ```bash
+    source ~/.bashrc  # or ~/.zshrc
+    ```
+  </Step>
+</Steps>
+
+## Verify installation
+
+Confirm the CLI is installed correctly:
+
+```bash
+coinpaprika-cli --version
+```
+
+You should see output like:
+
+```
+coinpaprika-cli 0.1.7
+```
+
+<Tip>
+Run `coinpaprika-cli --help` to see all available commands and options.
+</Tip>
+
+## Build from source
+
+If you want to build from source or contribute to development, you'll need Rust installed:
+
+<Steps>
+  <Step title="Install Rust">
+    If you don't have Rust installed, get it from [rustup.rs](https://rustup.rs):
+    
+    ```bash
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+  </Step>
+  
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/coinpaprika/coinpaprika-cli.git
+    cd coinpaprika-cli
+    ```
+  </Step>
+  
+  <Step title="Build and install">
+    ```bash
+    cargo install --path .
+    ```
+    
+    This builds an optimized binary and installs it to `~/.cargo/bin/coinpaprika-cli`.
+  </Step>
+  
+  <Step title="Verify the build">
+    ```bash
+    coinpaprika-cli --version
+    ```
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Command not found
+
+If you see `command not found: coinpaprika-cli`, your installation directory isn't in your PATH. Add it to your shell profile:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### Permission denied
+
+If you get permission errors during installation, either:
+
+- Use the default `~/.local/bin` directory (no sudo needed)
+- Or install to `/usr/local/bin` with sudo:
+
+```bash
+sudo curl -sSL https://raw.githubusercontent.com/coinpaprika/coinpaprika-cli/main/install.sh | sh
+```
+
+### Unsupported platform
+
+The installer supports Linux, macOS, and Windows on x86_64 and aarch64. If your platform isn't supported, try [building from source](#build-from-source).
+
+## Next steps
+
+<Card title="Quick start guide" icon="rocket" href="/quickstart">
+  Learn the essential commands and run your first queries
+</Card>

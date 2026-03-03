@@ -1,0 +1,146 @@
+---
+title: 'tickers'
+description: 'List real-time price data for all coins'
+---
+
+## Overview
+
+Returns real-time price, volume, market cap, and percentage change data for all cryptocurrencies. This is one of the most commonly used endpoints for getting current market data.
+
+## Usage
+
+```bash
+coinpaprika-cli tickers [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of tickers to return
+</ParamField>
+
+<ParamField path="--quotes" type="string" default="USD">
+  Currency quotes, comma-separated (e.g., `USD`, `BTC`, `USD,BTC,EUR`)
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get top 20 tickers
+
+```bash
+coinpaprika-cli tickers --limit 20
+```
+
+### Get tickers with multiple quote currencies
+
+```bash
+coinpaprika-cli tickers --quotes USD,BTC
+```
+
+### Get tickers in JSON format
+
+```bash
+coinpaprika-cli tickers --limit 10 --output json
+```
+
+### Get top 100 tickers with raw JSON
+
+```bash
+coinpaprika-cli tickers --limit 100 --output json --raw
+```
+
+## Example Output
+
+### Table Format
+
+```
+┌──────┬───────────────┬────────┬─────────────┬───────────────┬────────────┬──────────┐
+│ Rank │ Name          │ Symbol │ Price (USD) │ Market Cap    │ Volume 24h │ Change   │
+├──────┼───────────────┼────────┼─────────────┼───────────────┼────────────┼──────────┤
+│ 1    │ Bitcoin       │ BTC    │ $52,345.67  │ $1,024.5B     │ $28.3B     │ +2.34%   │
+│ 2    │ Ethereum      │ ETH    │ $3,234.56   │ $388.2B       │ $15.2B     │ +1.87%   │
+│ 3    │ Tether        │ USDT   │ $1.00       │ $98.5B        │ $45.6B     │ +0.01%   │
+│ 4    │ Binance Coin  │ BNB    │ $432.12     │ $66.4B        │ $1.8B      │ -0.45%   │
+│ 5    │ Solana        │ SOL    │ $123.45     │ $52.1B        │ $2.3B      │ +5.67%   │
+└──────┴───────────────┴────────┴─────────────┴───────────────┴────────────┴──────────┘
+```
+
+### JSON Format
+
+```json
+[
+  {
+    "id": "btc-bitcoin",
+    "name": "Bitcoin",
+    "symbol": "BTC",
+    "rank": 1,
+    "circulating_supply": 19567890,
+    "total_supply": 19567890,
+    "max_supply": 21000000,
+    "beta_value": 1.02,
+    "first_data_at": "2010-07-17T00:00:00Z",
+    "last_updated": "2024-03-03T12:00:00Z",
+    "quotes": {
+      "USD": {
+        "price": 52345.67,
+        "volume_24h": 28300000000,
+        "volume_24h_change_24h": 3.45,
+        "market_cap": 1024500000000,
+        "market_cap_change_24h": 2.34,
+        "percent_change_15m": 0.12,
+        "percent_change_30m": 0.23,
+        "percent_change_1h": 0.45,
+        "percent_change_6h": 1.23,
+        "percent_change_12h": 1.87,
+        "percent_change_24h": 2.34,
+        "percent_change_7d": 8.45,
+        "percent_change_30d": 15.67,
+        "percent_change_1y": 125.34,
+        "ath_price": 69000.00,
+        "ath_date": "2021-11-10T14:24:11Z",
+        "percent_from_price_ath": -24.13
+      }
+    }
+  }
+]
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique coin identifier |
+| `name` | string | Coin name |
+| `symbol` | string | Coin symbol/ticker |
+| `rank` | integer | Market cap rank |
+| `circulating_supply` | number | Circulating supply |
+| `total_supply` | number | Total supply |
+| `max_supply` | number | Maximum supply |
+| `beta_value` | number | Beta coefficient vs Bitcoin |
+| `quotes.{currency}.price` | number | Current price in quote currency |
+| `quotes.{currency}.volume_24h` | number | 24-hour trading volume |
+| `quotes.{currency}.market_cap` | number | Market capitalization |
+| `quotes.{currency}.percent_change_24h` | number | Price change in last 24h |
+| `quotes.{currency}.percent_change_7d` | number | Price change in last 7 days |
+| `quotes.{currency}.ath_price` | number | All-time high price |
+| `quotes.{currency}.ath_date` | string | Date of all-time high |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/tickers?quotes={quotes}&limit={limit}
+```
+
+## Related Commands
+
+- [ticker-detail](/api/ticker-detail) - Get ticker for a specific coin
+- [global](/api/global) - Get global market overview
+- [coins-list](/api/coins-list) - List all coins

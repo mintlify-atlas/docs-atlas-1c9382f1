@@ -1,0 +1,192 @@
+---
+title: Commands Overview
+description: Understanding CoinPaprika CLI command structure, global flags, and help system
+---
+
+## Command Structure
+
+The CoinPaprika CLI follows a simple command structure:
+
+```bash
+coinpaprika-cli [COMMAND] [OPTIONS] [ARGUMENTS]
+```
+
+### Basic Examples
+
+<CodeGroup>
+```bash Get Bitcoin price
+coinpaprika-cli ticker btc-bitcoin
+```
+
+```bash Get global market data
+coinpaprika-cli global
+```
+
+```bash List top 10 coins
+coinpaprika-cli coins --limit 10
+```
+</CodeGroup>
+
+## Global Flags
+
+These flags work with any command:
+
+### Output Format (`-o`, `--output`)
+
+Control how data is displayed:
+
+```bash
+# Table format (default, human-readable)
+coinpaprika-cli ticker btc-bitcoin --output table
+
+# JSON format (for scripts and tools)
+coinpaprika-cli ticker btc-bitcoin --output json
+```
+
+**Default:** `table`
+
+### API Key (`--api-key`)
+
+Override the configured API key for a single command:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin --api-key YOUR_API_KEY_HERE
+```
+
+This takes precedence over:
+1. Environment variable (`COINPAPRIKA_API_KEY`)
+2. Config file (`~/.config/coinpaprika-cli/config.json`)
+
+### Raw Output (`--raw`)
+
+Remove the `_meta` wrapper from JSON output:
+
+```bash
+# Standard JSON output (with metadata)
+coinpaprika-cli ticker btc-bitcoin --output json
+
+# Raw JSON output (data only, ideal for piping)
+coinpaprika-cli ticker btc-bitcoin --output json --raw
+```
+
+**Default:** `false`
+
+<Note>
+The `--raw` flag only affects JSON output. Use it when piping data to other tools like `jq`.
+</Note>
+
+## Getting Help
+
+### Command List
+
+See all available commands:
+
+```bash
+coinpaprika-cli --help
+```
+
+### Command Details
+
+Get help for a specific command:
+
+```bash
+coinpaprika-cli ticker --help
+coinpaprika-cli ohlcv --help
+coinpaprika-cli config --help
+```
+
+### Version Information
+
+```bash
+coinpaprika-cli --version
+```
+
+## Command Categories
+
+Commands are organized by functionality:
+
+### Market Data
+- `global` - Global market overview
+
+### Coins
+- `coins` - List all coins
+- `coin` - Get coin details
+- `coin-events` - Get coin events
+- `coin-exchanges` - Get exchanges for a coin
+- `coin-markets` - Get markets for a coin
+
+### Tickers
+- `tickers` - List all tickers
+- `ticker` - Get ticker for a specific coin
+- `ticker-history` - Historical ticker data (paid)
+
+### OHLCV
+- `ohlcv` - Historical OHLCV data (paid)
+- `ohlcv-latest` - Latest full day OHLCV
+- `ohlcv-today` - Today's incomplete OHLCV
+
+### Exchanges
+- `exchanges` - List exchanges
+- `exchange` - Get exchange details
+- `exchange-markets` - Get markets on an exchange
+
+### Contracts
+- `platforms` - List contract platforms
+- `contracts` - List contracts on a platform
+- `contract-ticker` - Get ticker by contract address
+- `contract-history` - Historical contract data (paid)
+
+### Search & Convert
+- `search` - Search for coins, exchanges, people, tags
+- `convert` - Convert between currencies
+
+### Configuration
+- `config show` - Show current configuration
+- `config set-key` - Set API key
+- `config reset` - Reset configuration
+
+### Utilities
+- `status` - Check API health
+- `plans` - View pricing plans
+- `onboard` - Interactive setup wizard
+- `check-update` - Check for CLI updates
+- `attribution` - Get attribution snippets
+- `shell` - Interactive REPL mode
+
+## Exit Codes
+
+The CLI uses standard exit codes:
+
+- `0` - Success
+- `1` - Error (API error, invalid input, etc.)
+
+## Common Patterns
+
+### Piping to jq
+
+```bash
+# Extract just the price
+coinpaprika-cli ticker btc-bitcoin --output json --raw | jq '.quotes.USD.price'
+
+# Get top 5 coins by rank
+coinpaprika-cli tickers --limit 5 --output json --raw | jq '.[] | {name, rank}'
+```
+
+### Saving to File
+
+```bash
+# Save JSON data
+coinpaprika-cli ticker btc-bitcoin --output json > btc-data.json
+
+# Save table output
+coinpaprika-cli coins --limit 100 > coins-list.txt
+```
+
+### Using in Scripts
+
+```bash
+#!/bin/bash
+# Monitor Bitcoin price
+price=$(coinpaprika-cli ticker btc-bitcoin --output json --raw | jq -r '.quotes.USD.price')
+echo "Current BTC price: $price"
+```

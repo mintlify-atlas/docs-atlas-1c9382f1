@@ -1,0 +1,588 @@
+---
+title: Integration
+description: Integrating CoinPaprika CLI with other tools, CI/CD, and monitoring systems
+---
+
+## Overview
+
+The CoinPaprika CLI is designed to integrate seamlessly with modern development workflows, CI/CD pipelines, monitoring systems, and automation tools.
+
+## CI/CD Integration
+
+### GitHub Actions
+
+Use the CLI in GitHub Actions workflows to fetch crypto market data during builds, deployments, or scheduled jobs.
+
+```yaml
+name: Daily Crypto Report
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Run daily at 9 AM UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  crypto-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install CoinPaprika CLI
+        run: |
+          curl -L https://github.com/coinpaprika/coinpaprika-cli/releases/latest/download/coinpaprika-cli-linux-amd64 -o coinpaprika-cli
+          chmod +x coinpaprika-cli
+          sudo mv coinpaprika-cli /usr/local/bin/
+
+      - name: Configure API Key
+        run: |
+          coinpaprika-cli onboard --key "${{ secrets.COINPAPRIKA_API_KEY }}"
+
+      - name: Fetch Market Data
+        run: |
+          coinpaprika-cli global --output json --raw > global.json
+          coinpaprika-cli tickers --limit 10 --output json --raw > top10.json
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: crypto-data
+          path: |
+            global.json
+            top10.json
+
+      - name: Generate Report
+        run: |
+          echo "# Crypto Market Report" > report.md
+          echo "Date: $(date)" >> report.md
+          echo "" >> report.md
+          echo "## Global Stats" >> report.md
+          jq -r '"Market Cap: $" + (.market_cap_usd | tostring)' global.json >> report.md
+          jq -r '"BTC Dominance: " + (.bitcoin_dominance_percentage | tostring) + "%"' global.json >> report.md
+
+      - name: Send Notification
+        run: |
+          # Send report via Slack, email, etc.
+          echo "Report generated successfully"
+```
+
+### GitLab CI
+
+```yaml
+stages:
+  - fetch-data
+  - analyze
+  - deploy
+
+fetch-crypto-data:
+  stage: fetch-data
+  image: ubuntu:latest
+  before_script:
+    - apt-get update && apt-get install -y curl jq
+    - curl -L https://github.com/coinpaprika/coinpaprika-cli/releases/latest/download/coinpaprika-cli-linux-amd64 -o /usr/local/bin/coinpaprika-cli
+    - chmod +x /usr/local/bin/coinpaprika-cli
+  script:
+    - export COINPAPRIKA_API_KEY="$COINPAPRIKA_API_KEY"
+    - coinpaprika-cli tickers --limit 100 --output json --raw > tickers.json
+    - coinpaprika-cli global --output json --raw > global.json
+  artifacts:
+    paths:
+      - tickers.json
+      - global.json
+    expire_in: 1 day
+  only:
+    - schedules
+
+analyze-data:
+  stage: analyze
+  image: python:3.11
+  script:
+    - pip install pandas
+    - python scripts/analyze_crypto.py tickers.json
+  dependencies:
+    - fetch-crypto-data
+```
+
+### Jenkins Pipeline
+
+```groovy
+pipeline {
+    agent any
+    
+    environment {
+        COINPAPRIKA_API_KEY = credentials('coinpaprika-api-key')
+    }
+    
+    stages {
+        stage('Setup') {
+            steps {
+                sh '''
+                    curl -L https://github.com/coinpaprika/coinpaprika-cli/releases/latest/download/coinpaprika-cli-linux-amd64 -o coinpaprika-cli
+                    chmod +x coinpaprika-cli
+                    sudo mv coinpaprika-cli /usr/local/bin/
+                '''
+            }
+        }
+        
+        stage('Fetch Data') {
+            steps {
+                sh '''
+                    coinpaprika-cli ticker btc-bitcoin --output json --raw > btc.json
+                    coinpaprika-cli ticker eth-ethereum --output json --raw > eth.json
+                '''
+            }
+        }
+        
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: '*.json', fingerprint: true
+            }
+        }
+    }
+    
+    post {
+        failure {
+            mail to: 'team@example.com',
+                 subject: "Crypto Data Fetch Failed: ${env.JOB_NAME} - ${env.BUILD_NUMBER}",
+                 body: "Check console output at ${env.BUILD_URL}"
+        }
+    }
+}
+```
+
+## Monitoring Systems
+
+### Prometheus
+
+Create a custom exporter that uses the CLI to expose crypto metrics to Prometheus:
+
+```python
+#!/usr/bin/env python3
+# crypto_exporter.py - Prometheus exporter for CoinPaprika
+
+import json
+import subprocess
+import time
+from prometheus_client import start_http_server, Gauge
+
+# Define metrics
+crypto_price = Gauge('crypto_price_usd', 'Cryptocurrency price in USD', ['coin'])
+crypto_market_cap = Gauge('crypto_market_cap_usd', 'Market cap in USD', ['coin'])
+crypto_volume_24h = Gauge('crypto_volume_24h_usd', '24h volume in USD', ['coin'])
+crypto_change_24h = Gauge('crypto_change_24h_percent', '24h change percentage', ['coin'])
+
+MONITORED_COINS = ['btc-bitcoin', 'eth-ethereum', 'usdt-tether']
+
+def fetch_ticker(coin_id):
+    """Fetch ticker data from CoinPaprika CLI."""
+    result = subprocess.run(
+        ['coinpaprika-cli', 'ticker', coin_id, '--output', 'json', '--raw'],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    return json.loads(result.stdout)
+
+def update_metrics():
+    """Update Prometheus metrics."""
+    for coin_id in MONITORED_COINS:
+        try:
+            data = fetch_ticker(coin_id)
+            usd = data['quotes']['USD']
+            
+            crypto_price.labels(coin=coin_id).set(usd['price'])
+            crypto_market_cap.labels(coin=coin_id).set(usd['market_cap'])
+            crypto_volume_24h.labels(coin=coin_id).set(usd['volume_24h'])
+            crypto_change_24h.labels(coin=coin_id).set(usd['percent_change_24h'])
+            
+            print(f"Updated metrics for {coin_id}")
+        except Exception as e:
+            print(f"Error fetching {coin_id}: {e}")
+
+if __name__ == '__main__':
+    # Start Prometheus HTTP server
+    start_http_server(9090)
+    print("Prometheus exporter running on port 9090")
+    
+    # Update metrics every 60 seconds
+    while True:
+        update_metrics()
+        time.sleep(60)
+```
+
+Run the exporter:
+
+```bash
+pip install prometheus-client
+python crypto_exporter.py
+```
+
+Add to `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'crypto'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 60s
+```
+
+### Grafana Dashboard
+
+Query the Prometheus metrics in Grafana:
+
+```promql
+# Bitcoin price
+crypto_price_usd{coin="btc-bitcoin"}
+
+# Total market cap of monitored coins
+sum(crypto_market_cap_usd)
+
+# Coins with 24h change > 5%
+crypto_change_24h_percent > 5
+```
+
+### Datadog
+
+Send custom metrics to Datadog using the CLI:
+
+```python
+#!/usr/bin/env python3
+# datadog_integration.py
+
+import json
+import subprocess
+import time
+from datadog import initialize, api
+
+# Initialize Datadog
+options = {
+    'api_key': 'YOUR_DATADOG_API_KEY',
+    'app_key': 'YOUR_DATADOG_APP_KEY'
+}
+initialize(**options)
+
+def send_crypto_metrics():
+    """Fetch and send crypto metrics to Datadog."""
+    coins = ['btc-bitcoin', 'eth-ethereum']
+    
+    for coin_id in coins:
+        result = subprocess.run(
+            ['coinpaprika-cli', 'ticker', coin_id, '--output', 'json', '--raw'],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        data = json.loads(result.stdout)
+        usd = data['quotes']['USD']
+        
+        # Send metrics
+        api.Metric.send(
+            metric='crypto.price',
+            points=usd['price'],
+            tags=[f"coin:{coin_id}", f"symbol:{data['symbol']}"]
+        )
+        api.Metric.send(
+            metric='crypto.market_cap',
+            points=usd['market_cap'],
+            tags=[f"coin:{coin_id}"]
+        )
+        api.Metric.send(
+            metric='crypto.change_24h',
+            points=usd['percent_change_24h'],
+            tags=[f"coin:{coin_id}"]
+        )
+
+if __name__ == '__main__':
+    while True:
+        send_crypto_metrics()
+        time.sleep(300)  # Every 5 minutes
+```
+
+## Database Integration
+
+### PostgreSQL
+
+Store historical crypto data in PostgreSQL:
+
+```python
+#!/usr/bin/env python3
+# store_to_postgres.py
+
+import json
+import subprocess
+import psycopg2
+from datetime import datetime
+
+# Database connection
+conn = psycopg2.connect(
+    host="localhost",
+    database="crypto_db",
+    user="postgres",
+    password="password"
+)
+cur = conn.cursor()
+
+# Create table
+cur.execute("""
+    CREATE TABLE IF NOT EXISTS ticker_history (
+        id SERIAL PRIMARY KEY,
+        coin_id VARCHAR(50),
+        name VARCHAR(100),
+        symbol VARCHAR(10),
+        price DECIMAL(20, 8),
+        market_cap BIGINT,
+        volume_24h BIGINT,
+        percent_change_24h DECIMAL(10, 2),
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+""")
+conn.commit()
+
+def store_ticker(coin_id):
+    """Fetch and store ticker data."""
+    result = subprocess.run(
+        ['coinpaprika-cli', 'ticker', coin_id, '--output', 'json', '--raw'],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    data = json.loads(result.stdout)
+    usd = data['quotes']['USD']
+    
+    cur.execute("""
+        INSERT INTO ticker_history 
+        (coin_id, name, symbol, price, market_cap, volume_24h, percent_change_24h)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """, (
+        data['id'],
+        data['name'],
+        data['symbol'],
+        usd['price'],
+        usd['market_cap'],
+        usd['volume_24h'],
+        usd['percent_change_24h']
+    ))
+    conn.commit()
+    print(f"Stored {data['name']} data")
+
+if __name__ == '__main__':
+    coins = ['btc-bitcoin', 'eth-ethereum', 'usdt-tether']
+    for coin in coins:
+        store_ticker(coin)
+    
+    cur.close()
+    conn.close()
+```
+
+### MongoDB
+
+```python
+#!/usr/bin/env python3
+# store_to_mongo.py
+
+import json
+import subprocess
+from pymongo import MongoClient
+from datetime import datetime
+
+client = MongoClient('mongodb://localhost:27017/')
+db = client['crypto_data']
+collection = db['tickers']
+
+def store_ticker(coin_id):
+    """Fetch and store ticker in MongoDB."""
+    result = subprocess.run(
+        ['coinpaprika-cli', 'ticker', coin_id, '--output', 'json', '--raw'],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    data = json.loads(result.stdout)
+    data['_timestamp'] = datetime.utcnow()
+    
+    collection.insert_one(data)
+    print(f"Stored {data['name']} to MongoDB")
+
+if __name__ == '__main__':
+    coins = ['btc-bitcoin', 'eth-ethereum']
+    for coin in coins:
+        store_ticker(coin)
+```
+
+## Notification Systems
+
+### Slack Webhook
+
+```bash
+#!/bin/bash
+# slack_notify.sh - Send crypto price alerts to Slack
+
+SLACK_WEBHOOK="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+PRICE=$(coinpaprika-cli ticker btc-bitcoin --output json --raw | jq -r '.quotes.USD.price')
+CHANGE=$(coinpaprika-cli ticker btc-bitcoin --output json --raw | jq -r '.quotes.USD.percent_change_24h')
+
+MESSAGE="Bitcoin Price Update: \$${PRICE} (24h: ${CHANGE}%)"
+
+curl -X POST -H 'Content-type: application/json' \
+  --data "{\"text\":\"$MESSAGE\"}" \
+  "$SLACK_WEBHOOK"
+```
+
+### Email Alerts
+
+```python
+#!/usr/bin/env python3
+# email_alert.py
+
+import json
+import subprocess
+import smtplib
+from email.mime.text import MIMEText
+
+def send_email(subject, body):
+    """Send email alert."""
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = 'crypto-bot@example.com'
+    msg['To'] = 'you@example.com'
+    
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.starttls()
+        server.login('crypto-bot@example.com', 'your-password')
+        server.send_message(msg)
+
+def check_btc_price():
+    """Check BTC price and send alert if above threshold."""
+    result = subprocess.run(
+        ['coinpaprika-cli', 'ticker', 'btc-bitcoin', '--output', 'json', '--raw'],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    data = json.loads(result.stdout)
+    price = data['quotes']['USD']['price']
+    
+    if price > 50000:
+        send_email(
+            subject=f"BTC Alert: ${price:.2f}",
+            body=f"Bitcoin has crossed $50,000! Current price: ${price:.2f}"
+        )
+
+if __name__ == '__main__':
+    check_btc_price()
+```
+
+## Docker Integration
+
+### Dockerfile
+
+```dockerfile
+FROM ubuntu:22.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install CoinPaprika CLI
+RUN curl -L https://github.com/coinpaprika/coinpaprika-cli/releases/latest/download/coinpaprika-cli-linux-amd64 -o /usr/local/bin/coinpaprika-cli \
+    && chmod +x /usr/local/bin/coinpaprika-cli
+
+# Set environment variable for API key
+ENV COINPAPRIKA_API_KEY=""
+
+# Copy scripts
+COPY scripts/ /app/scripts/
+WORKDIR /app
+
+# Run the monitoring script
+CMD ["python3", "/app/scripts/monitor.py"]
+```
+
+### Docker Compose
+
+```yaml
+version: '3.8'
+
+services:
+  crypto-monitor:
+    build: .
+    environment:
+      - COINPAPRIKA_API_KEY=${COINPAPRIKA_API_KEY}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  crypto-exporter:
+    build: .
+    command: python3 /app/scripts/prometheus_exporter.py
+    ports:
+      - "9090:9090"
+    environment:
+      - COINPAPRIKA_API_KEY=${COINPAPRIKA_API_KEY}
+    restart: unless-stopped
+```
+
+## Cron Jobs
+
+### Daily Data Collection
+
+```bash
+# Add to crontab: crontab -e
+
+# Fetch market data every hour
+0 * * * * /usr/local/bin/coinpaprika-cli tickers --limit 100 --output json --raw > /var/data/crypto/tickers_$(date +\%Y\%m\%d_\%H).json
+
+# Daily market summary at 9 AM
+0 9 * * * /usr/local/bin/coinpaprika-cli global --output json --raw | jq -r '"Market Cap: \(.market_cap_usd), BTC Dominance: \(.bitcoin_dominance_percentage)%"' | mail -s "Daily Crypto Summary" you@example.com
+
+# Check for price alerts every 15 minutes
+*/15 * * * * /home/user/scripts/price_alert.sh
+```
+
+## API Key Management
+
+For production integrations, manage API keys securely:
+
+### Environment Variables
+
+```bash
+# Set in .env file (never commit!)
+export COINPAPRIKA_API_KEY="your-api-key-here"
+
+# Use in scripts
+coinpaprika-cli ticker btc-bitcoin --api-key "$COINPAPRIKA_API_KEY"
+```
+
+### AWS Secrets Manager
+
+```python
+import boto3
+import json
+import subprocess
+
+def get_api_key():
+    """Retrieve API key from AWS Secrets Manager."""
+    client = boto3.client('secretsmanager', region_name='us-east-1')
+    response = client.get_secret_value(SecretId='coinpaprika-api-key')
+    return json.loads(response['SecretString'])['api_key']
+
+api_key = get_api_key()
+result = subprocess.run(
+    ['coinpaprika-cli', 'ticker', 'btc-bitcoin', '--api-key', api_key, '--output', 'json', '--raw'],
+    capture_output=True,
+    text=True,
+    check=True
+)
+```
+
+## Best Practices
+
+1. **Use `--raw` for integrations** — easier to parse and pipe
+2. **Set timeouts** — prevent hanging processes in automated workflows
+3. **Handle rate limits** — respect the API's 20,000 calls/month free tier
+4. **Cache responses** — reduce redundant API calls
+5. **Log errors** — capture stderr for debugging
+6. **Use config files** — store API keys in `~/.config/coinpaprika-cli/config.toml` instead of passing as arguments
+7. **Version pin** — in CI/CD, download a specific version instead of "latest" for reproducibility
+8. **Monitor failures** — set up alerts for failed API calls or script errors

@@ -1,0 +1,544 @@
+---
+title: Utility Commands
+description: Status checks, plan information, updates, and other utility commands
+---
+
+## Commands Overview
+
+Utility commands help you manage and monitor the CLI:
+
+- `status` - Check API health and response time
+- `plans` - View free tier and paid plan details
+- `onboard` - Interactive setup wizard
+- `check-update` - Check for CLI updates
+- `attribution` - Get attribution snippets
+- `shell` - Interactive REPL mode
+- `key-info` - View API key details (paid)
+
+## Status
+
+```bash
+coinpaprika-cli status
+```
+
+Check CoinPaprika API health status and measure response time.
+
+### Examples
+
+<CodeGroup>
+```bash Check Status
+coinpaprika-cli status
+```
+
+```bash JSON Output
+coinpaprika-cli status --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+- `status` - API status ("OK" or "ERROR")
+- `response_time_ms` - Response time in milliseconds
+- `api_key_configured` - Whether an API key is set
+
+### Use Cases
+
+```bash
+# Verify API connectivity before running scripts
+if coinpaprika-cli status --output json --raw | jq -e '.coinpaprika.status == "OK"' > /dev/null; then
+  echo "API is healthy"
+  # Run your commands
+else
+  echo "API is down"
+  exit 1
+fi
+
+# Monitor response times
+while true; do
+  response_time=$(coinpaprika-cli status --output json --raw | jq -r '.coinpaprika.response_time_ms')
+  echo "$(date): ${response_time}ms"
+  sleep 60
+done
+```
+
+## Plans
+
+```bash
+coinpaprika-cli plans
+```
+
+View free tier details and paid plan overview.
+
+### Examples
+
+<CodeGroup>
+```bash View Plans
+coinpaprika-cli plans
+```
+
+```bash JSON Output
+coinpaprika-cli plans --output json
+```
+</CodeGroup>
+
+### What It Shows
+
+**Free tier details:**
+- Rate limits (20,000 calls/month)
+- Update frequency (~10 minutes)
+- Endpoint coverage (25+)
+- Asset coverage (2,000)
+- Historical data limits
+- Feature restrictions
+
+**Paid plans info:**
+- Link to pricing page
+- How to set API key
+- Available upgrades
+
+### Example Output
+
+```
+─── Free tier ($0/mo, no API key needed) ───
+
+Rate limits
+  20,000 calls/month
+  Data updates every ~10 minutes
+
+Coverage
+  25+ endpoints
+  2,000 assets
+  Personal use
+
+Historical data
+  Daily OHLCV:    up to 1 year back
+  Hourly OHLCV:   last 24 hours
+  OHLCV interval: 24h only
+  5-min / ticker history: not available
+
+Not included
+  Circulating supply
+  API ID mappings
+  WebSockets
+  Redistribution rights
+  SLA / dedicated infrastructure
+
+─── Need more? ───
+
+Paid plans add: full history, 5-min intervals, circulating supply,
+higher limits, WebSockets, commercial use, and priority support.
+
+See current pricing:  https://coinpaprika.com/api/pricing
+Set your API key:     coinpaprika-cli config set-key <KEY>
+```
+
+## Onboard
+
+```bash
+coinpaprika-cli onboard [--key <KEY>]
+```
+
+Interactive setup wizard to configure your API key.
+
+### Options
+
+- `--key <KEY>` - API key to save (skips interactive prompts)
+
+### Examples
+
+<CodeGroup>
+```bash Interactive Setup
+coinpaprika-cli onboard
+```
+
+```bash Non-Interactive
+coinpaprika-cli onboard --key sk-your-api-key-here
+```
+</CodeGroup>
+
+### Interactive Mode
+
+Walks you through:
+1. Welcome message
+2. Ask if you have an API key
+3. Validate the key (if provided)
+4. Save to config file
+5. Show plan details
+6. Suggest example commands
+
+### Non-Interactive Mode
+
+With `--key` flag:
+- Validates key automatically
+- Shows plan from API
+- Saves to config file
+- No prompts needed
+
+### Example Session
+
+```
+┌─────────────────────────────────────────────────┐
+│  Welcome to coinpaprika-cli!                    │
+│  Crypto market data for developers & AI agents  │
+└─────────────────────────────────────────────────┘
+
+Do you have a CoinPaprika API key? (y/n)
+y
+
+Paste your API key:
+sk-your-api-key-here
+
+Validating key...
+Key validated! Plan: starter
+Saved to /home/user/.config/coinpaprika-cli/config.json
+
+You're all set! Try these commands:
+  coinpaprika-cli ticker btc-bitcoin
+  coinpaprika-cli global
+  coinpaprika-cli search ethereum
+```
+
+## Check Update
+
+```bash
+coinpaprika-cli check-update
+```
+
+Check if a newer version of the CLI is available.
+
+### Examples
+
+<CodeGroup>
+```bash Check for Updates
+coinpaprika-cli check-update
+```
+
+```bash JSON Output
+coinpaprika-cli check-update --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+- `current` - Your installed version
+- `latest` - Latest available version
+- `up_to_date` - Whether you're on the latest version
+
+### Example Output
+
+```
+Checking for updates...
+coinpaprika-cli v1.2.3 — up to date.
+```
+
+Or if update available:
+
+```
+Checking for updates...
+coinpaprika-cli v1.2.3 — update available: v1.3.0
+
+  Update:  cargo install coinpaprika-cli
+  Release: https://github.com/coinpaprika/coinpaprika-cli/releases/latest
+```
+
+### Updating the CLI
+
+```bash
+# Check for updates
+coinpaprika-cli check-update
+
+# If update available, install it
+cargo install coinpaprika-cli
+
+# Verify new version
+coinpaprika-cli --version
+```
+
+## Attribution
+
+```bash
+coinpaprika-cli attribution
+```
+
+Get ready-to-paste attribution snippets for CoinPaprika.
+
+### Examples
+
+<CodeGroup>
+```bash View Snippets
+coinpaprika-cli attribution
+```
+
+```bash JSON Output
+coinpaprika-cli attribution --output json
+```
+</CodeGroup>
+
+### Provided Snippets
+
+**HTML:**
+```html
+<a href="https://coinpaprika.com">Powered by CoinPaprika</a>
+```
+
+**React/JSX:**
+```jsx
+<a href="https://coinpaprika.com" target="_blank" rel="noopener">
+  Powered by CoinPaprika
+</a>
+```
+
+**Markdown:**
+```markdown
+[Powered by CoinPaprika](https://coinpaprika.com)
+```
+
+**Plain text:**
+```
+Data provided by CoinPaprika (https://coinpaprika.com)
+```
+
+**GitHub badge:**
+```markdown
+[![CoinPaprika](https://img.shields.io/badge/data-CoinPaprika-green)](https://coinpaprika.com)
+```
+
+### Attribution Policy
+
+<Note>
+Attribution is **appreciated but not required**. CoinPaprika data is free to use, even without attribution.
+</Note>
+
+Consider adding attribution when:
+- Building public applications
+- Creating documentation
+- Sharing data visualizations
+- Using data in research papers
+
+## Shell Mode
+
+```bash
+coinpaprika-cli shell
+```
+
+Launch interactive REPL (Read-Eval-Print Loop) mode.
+
+### What It Does
+
+Provides an interactive shell where you can:
+- Run commands without typing `coinpaprika-cli` prefix
+- Access command history
+- Get auto-completion (if supported by terminal)
+- Stay connected for multiple queries
+
+### Example Session
+
+```
+$ coinpaprika-cli shell
+
+coinpaprika> ticker btc-bitcoin
+[Bitcoin ticker data]
+
+coinpaprika> global
+[Global market data]
+
+coinpaprika> search ethereum
+[Ethereum search results]
+
+coinpaprika> exit
+```
+
+### Shell Commands
+
+- Type any CLI command without the `coinpaprika-cli` prefix
+- Use `help` for command list
+- Use `exit` or Ctrl+D to quit
+
+## Key Info
+
+<Note>
+**PAID FEATURE:** Requires an API key. Works with any paid plan.
+</Note>
+
+```bash
+coinpaprika-cli key-info
+```
+
+Get information about your API key and plan.
+
+### Examples
+
+<CodeGroup>
+```bash Check Key Info
+coinpaprika-cli key-info
+```
+
+```bash JSON Output
+coinpaprika-cli key-info --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+- `plan` - Your plan name (starter, pro, business, enterprise)
+- `plan_started_at` - Plan start date
+- `plan_end_at` - Plan end date (if applicable)
+- `requests_left` - Remaining API calls this period
+- `total_requests` - Total requests in current period
+
+### Use Cases
+
+```bash
+# Check remaining API calls
+calls_left=$(coinpaprika-cli key-info --output json --raw | jq -r '.requests_left')
+echo "API calls remaining: $calls_left"
+
+# Alert if running low
+if [ $calls_left -lt 1000 ]; then
+  echo "WARNING: Less than 1000 API calls remaining"
+fi
+```
+
+## Additional Utilities
+
+### Mappings (Business+)
+
+<Note>
+**PAID FEATURE:** Requires Business plan or higher.
+</Note>
+
+```bash
+coinpaprika-cli mappings
+```
+
+Get ID mappings across different platforms (CoinGecko, CoinMarketCap, etc.).
+
+### Changelog (Starter+)
+
+<Note>
+**PAID FEATURE:** Requires Starter plan or higher.
+</Note>
+
+```bash
+coinpaprika-cli changelog [OPTIONS]
+```
+
+Get changelog of coin ID changes.
+
+**Options:**
+- `--limit <NUMBER>` - Maximum results (default: `50`)
+- `--page <NUMBER>` - Page number (default: `1`)
+
+**Examples:**
+```bash
+# Recent changes
+coinpaprika-cli changelog --limit 20
+
+# Browse pages
+coinpaprika-cli changelog --page 2
+```
+
+## Practical Examples
+
+### Pre-Flight Check Script
+
+```bash
+#!/bin/bash
+# Check everything before running main script
+
+echo "Checking API status..."
+if ! coinpaprika-cli status --output json --raw | jq -e '.coinpaprika.status == "OK"' > /dev/null; then
+  echo "ERROR: API is down"
+  exit 1
+fi
+
+echo "Checking for updates..."
+coinpaprika-cli check-update
+
+echo "Checking API quota..."
+if coinpaprika-cli key-info &>/dev/null; then
+  calls_left=$(coinpaprika-cli key-info --output json --raw | jq -r '.requests_left')
+  echo "API calls remaining: $calls_left"
+fi
+
+echo "All checks passed!"
+```
+
+### Monitor API Performance
+
+```bash
+#!/bin/bash
+# Log API response times
+while true; do
+  data=$(coinpaprika-cli status --output json --raw)
+  status=$(echo $data | jq -r '.coinpaprika.status')
+  response_time=$(echo $data | jq -r '.coinpaprika.response_time_ms')
+  
+  echo "$(date): $status - ${response_time}ms" | tee -a api-monitor.log
+  
+  if [ "$status" != "OK" ]; then
+    echo "ALERT: API is down!" | mail -s "API Alert" admin@example.com
+  fi
+  
+  sleep 300  # Check every 5 minutes
+done
+```
+
+### Setup New Environment
+
+```bash
+#!/bin/bash
+# Setup script for new installations
+
+echo "Setting up coinpaprika-cli..."
+
+# Check if installed
+if ! command -v coinpaprika-cli &> /dev/null; then
+  echo "Installing coinpaprika-cli..."
+  cargo install coinpaprika-cli
+fi
+
+# Check for updates
+coinpaprika-cli check-update
+
+# Run onboard
+if [ -n "$COINPAPRIKA_API_KEY" ]; then
+  coinpaprika-cli onboard --key "$COINPAPRIKA_API_KEY"
+else
+  coinpaprika-cli onboard
+fi
+
+# Verify setup
+coinpaprika-cli status
+
+echo "Setup complete!"
+```
+
+### Quota Monitoring
+
+```bash
+#!/bin/bash
+# Monitor API quota usage
+
+info=$(coinpaprika-cli key-info --output json --raw)
+requests_left=$(echo $info | jq -r '.requests_left')
+total_requests=$(echo $info | jq -r '.total_requests')
+plan=$(echo $info | jq -r '.plan')
+
+used=$((total_requests - requests_left))
+percentage=$((used * 100 / total_requests))
+
+echo "Plan: $plan"
+echo "Used: $used / $total_requests ($percentage%)"
+echo "Remaining: $requests_left"
+
+if [ $percentage -gt 80 ]; then
+  echo "WARNING: 80% of quota used!"
+fi
+```
+
+## Related Commands
+
+- [`config`](/commands/configuration) - Manage configuration
+- [`global`](/commands/market-data) - Test API with global data
+- [`ticker`](/commands/tickers) - Test API with ticker data

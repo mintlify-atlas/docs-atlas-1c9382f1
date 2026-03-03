@@ -1,0 +1,160 @@
+---
+title: 'coin-markets'
+description: 'Get markets for a specific coin'
+---
+
+## Overview
+
+Returns detailed market/trading pair information for a specific cryptocurrency across multiple exchanges, including price, volume, and market metadata.
+
+## Usage
+
+```bash
+coinpaprika-cli coin-markets <COIN_ID> [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="coin_id" type="string" required>
+  Coin ID in format `symbol-name` (e.g., `btc-bitcoin`)
+</ParamField>
+
+<ParamField path="--quotes" type="string" default="USD">
+  Currency quotes, comma-separated (e.g., `USD`, `BTC`, `USD,BTC`)
+</ParamField>
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of markets to return
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get Bitcoin markets with USD quotes
+
+```bash
+coinpaprika-cli coin-markets btc-bitcoin
+```
+
+### Get Ethereum markets with multiple quote currencies
+
+```bash
+coinpaprika-cli coin-markets eth-ethereum --quotes USD,BTC
+```
+
+### Get top 20 markets for Solana
+
+```bash
+coinpaprika-cli coin-markets sol-solana --limit 20
+```
+
+### Get markets in JSON format
+
+```bash
+coinpaprika-cli coin-markets btc-bitcoin --output json
+```
+
+## Example Output
+
+### Table Format
+
+```
+┌──────────────┬───────────────────┬────────────┬─────────────┬─────────────┬──────────────┐
+│ Exchange     │ Pair              │ Price (USD)│ Volume (24h)│ Trust Score │ Category     │
+├──────────────┼───────────────────┼────────────┼─────────────┼─────────────┼──────────────┤
+│ Binance      │ BTC/USDT          │ $52,345.67 │ $2.3B       │ High        │ Spot         │
+│ Coinbase     │ BTC/USD           │ $52,340.12 │ $1.8B       │ High        │ Spot         │
+│ Kraken       │ BTC/EUR           │ €48,234.56 │ $876M       │ High        │ Spot         │
+│ OKX          │ BTC/USDT          │ $52,342.89 │ $1.2B       │ High        │ Spot         │
+└──────────────┴───────────────────┴────────────┴─────────────┴─────────────┴──────────────┘
+```
+
+### JSON Format
+
+```json
+[
+  {
+    "exchange_id": "binance",
+    "exchange_name": "Binance",
+    "pair": "BTC/USDT",
+    "base_currency_id": "btc-bitcoin",
+    "base_currency_name": "Bitcoin",
+    "quote_currency_id": "usdt-tether",
+    "quote_currency_name": "Tether",
+    "market_url": "https://www.binance.com/en/trade/BTC_USDT",
+    "category": "Spot",
+    "fee_type": "Percentage",
+    "outlier": false,
+    "adjusted_volume_24h_share": 15.23,
+    "quotes": {
+      "USD": {
+        "price": 52345.67,
+        "volume_24h": 2300000000.00
+      }
+    },
+    "trust_score": "high",
+    "last_updated": "2024-03-03T12:00:00Z"
+  },
+  {
+    "exchange_id": "coinbase-exchange",
+    "exchange_name": "Coinbase Exchange",
+    "pair": "BTC/USD",
+    "base_currency_id": "btc-bitcoin",
+    "base_currency_name": "Bitcoin",
+    "quote_currency_id": "usd-us-dollars",
+    "quote_currency_name": "US Dollars",
+    "market_url": "https://pro.coinbase.com/trade/BTC-USD",
+    "category": "Spot",
+    "fee_type": "Percentage",
+    "outlier": false,
+    "adjusted_volume_24h_share": 12.45,
+    "quotes": {
+      "USD": {
+        "price": 52340.12,
+        "volume_24h": 1800000000.00
+      }
+    },
+    "trust_score": "high",
+    "last_updated": "2024-03-03T12:00:00Z"
+  }
+]
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `exchange_id` | string | Unique exchange identifier |
+| `exchange_name` | string | Exchange name |
+| `pair` | string | Trading pair (e.g., BTC/USDT) |
+| `base_currency_id` | string | Base currency coin ID |
+| `base_currency_name` | string | Base currency name |
+| `quote_currency_id` | string | Quote currency coin ID |
+| `quote_currency_name` | string | Quote currency name |
+| `market_url` | string | Direct URL to market on exchange |
+| `category` | string | Market category (Spot, Perpetual, etc.) |
+| `fee_type` | string | Fee structure type |
+| `outlier` | boolean | Whether price is an outlier |
+| `adjusted_volume_24h_share` | number | Market's share of total volume |
+| `quotes` | object | Price and volume data per quote currency |
+| `trust_score` | string | Market trust score |
+| `last_updated` | string | Last update timestamp |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/coins/{coin_id}/markets?quotes={quotes}
+```
+
+## Related Commands
+
+- [coin-detail](/api/coin-detail) - Get detailed coin information
+- [coin-exchanges](/api/coin-exchanges) - Get exchanges trading a coin
+- [ticker-detail](/api/ticker-detail) - Get real-time price data

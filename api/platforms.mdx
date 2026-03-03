@@ -1,0 +1,315 @@
+---
+title: "platforms"
+description: "List contract platforms and query smart contracts"
+---
+
+## Overview
+
+List blockchain platforms that support smart contracts and query contract information by address. This is essential for tracking tokens on platforms like Ethereum, BNB Chain, and Polygon.
+
+## Commands
+
+### List Platforms
+
+Get a list of all supported blockchain platforms:
+
+```bash
+coinpaprika-cli platforms
+```
+
+### List Contracts
+
+Get contracts deployed on a specific platform:
+
+```bash
+coinpaprika-cli contracts <platform_id> [OPTIONS]
+```
+
+### Contract Ticker
+
+Get ticker data for a specific contract address:
+
+```bash
+coinpaprika-cli contract-ticker <platform_id> <address>
+```
+
+### Contract History
+
+Get historical ticker data for a contract **[PAID: Starter+]**:
+
+```bash
+coinpaprika-cli contract-history <platform_id> <address> [OPTIONS]
+```
+
+## List Platforms
+
+### Options
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper
+</ParamField>
+
+### Examples
+
+```bash
+coinpaprika-cli platforms
+coinpaprika-cli platforms --output json
+```
+
+### Response
+
+```json
+[
+  "eth-ethereum",
+  "bnb-binance-coin",
+  "matic-polygon",
+  "avax-avalanche",
+  "ftm-fantom",
+  "sol-solana"
+]
+```
+
+## List Contracts
+
+### Arguments
+
+<ParamField path="platform_id" type="string" required>
+  Platform ID (e.g., `eth-ethereum`, `bnb-binance-coin`)
+</ParamField>
+
+### Options
+
+<ParamField query="limit" type="number" default="50">
+  Maximum number of contracts to return
+</ParamField>
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper
+</ParamField>
+
+### Examples
+
+```bash
+coinpaprika-cli contracts eth-ethereum --limit 20
+coinpaprika-cli contracts bnb-binance-coin --limit 50 --output json
+coinpaprika-cli contracts matic-polygon
+```
+
+### Response
+
+```json
+[
+  {
+    "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    "type": "ERC20",
+    "id": "usdt-tether",
+    "active": true
+  },
+  {
+    "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "type": "ERC20",
+    "id": "usdc-usd-coin",
+    "active": true
+  }
+]
+```
+
+## Contract Ticker
+
+### Arguments
+
+<ParamField path="platform_id" type="string" required>
+  Platform ID (e.g., `eth-ethereum`)
+</ParamField>
+
+<ParamField path="address" type="string" required>
+  Smart contract address (e.g., `0xdac17f958d2ee523a2206206994597c13d831ec7`)
+</ParamField>
+
+### Options
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper
+</ParamField>
+
+### Examples
+
+#### Get USDT contract ticker on Ethereum
+
+```bash
+coinpaprika-cli contract-ticker eth-ethereum 0xdac17f958d2ee523a2206206994597c13d831ec7
+```
+
+#### Get USDC contract ticker
+
+```bash
+coinpaprika-cli contract-ticker eth-ethereum 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
+```
+
+#### Get token data as JSON
+
+```bash
+coinpaprika-cli contract-ticker bnb-binance-coin 0xe9e7cea3dedca5984780bafc599bd69add087d56 --output json
+```
+
+### Response
+
+```json
+{
+  "id": "usdt-tether",
+  "name": "Tether",
+  "symbol": "USDT",
+  "rank": 3,
+  "circulating_supply": 95000000000,
+  "total_supply": 95000000000,
+  "max_supply": null,
+  "beta_value": 0.12,
+  "first_data_at": "2015-02-25T00:00:00Z",
+  "last_updated": "2024-01-02T15:30:00Z",
+  "quotes": {
+    "USD": {
+      "price": 1.0,
+      "volume_24h": 45000000000,
+      "volume_24h_change_24h": 5.2,
+      "market_cap": 95000000000,
+      "market_cap_change_24h": 0.1,
+      "percent_change_24h": 0.02,
+      "percent_change_7d": -0.01,
+      "percent_change_30d": 0.03,
+      "percent_change_1y": 0.15,
+      "ath_price": 1.32,
+      "ath_date": "2015-03-02T00:00:00Z",
+      "percent_from_price_ath": -24.2
+    }
+  }
+}
+```
+
+## Contract History [PAID]
+
+<Warning>
+  This command requires a paid plan (Starter or higher). See `coinpaprika-cli plans` for details.
+</Warning>
+
+### Arguments
+
+<ParamField path="platform_id" type="string" required>
+  Platform ID (e.g., `eth-ethereum`)
+</ParamField>
+
+<ParamField path="address" type="string" required>
+  Smart contract address
+</ParamField>
+
+### Options
+
+<ParamField query="start" type="string" required>
+  Start date in ISO format (e.g., `2024-01-01`)
+</ParamField>
+
+<ParamField query="end" type="string">
+  End date in ISO format (defaults to now)
+</ParamField>
+
+<ParamField query="interval" type="string" default="24h">
+  Time interval: `5m`, `15m`, `30m`, `1h`, `6h`, `12h`, `24h`
+</ParamField>
+
+<ParamField query="limit" type="number" default="50">
+  Maximum number of data points to return
+</ParamField>
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper
+</ParamField>
+
+### Examples
+
+```bash
+coinpaprika-cli contract-history eth-ethereum 0xdac17f958d2ee523a2206206994597c13d831ec7 --start 2024-01-01
+coinpaprika-cli contract-history eth-ethereum 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48 --start 2024-01-01 --interval 1h --limit 100
+```
+
+### Response
+
+```json
+[
+  {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "price": 1.0001,
+    "volume_24h": 42000000000,
+    "market_cap": 94500000000
+  },
+  {
+    "timestamp": "2024-01-02T00:00:00Z",
+    "price": 1.0002,
+    "volume_24h": 45000000000,
+    "market_cap": 95000000000
+  }
+]
+```
+
+## Response Fields
+
+### Contract Object
+
+<ResponseField name="address" type="string">
+  Smart contract address on the blockchain
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Contract standard (e.g., `ERC20`, `BEP20`, `SPL`)
+</ResponseField>
+
+<ResponseField name="id" type="string">
+  CoinPaprika coin ID for this contract
+</ResponseField>
+
+<ResponseField name="active" type="boolean">
+  Whether the contract is currently active
+</ResponseField>
+
+### Contract Ticker Fields
+
+See the [ticker command](/api/ticker) documentation for full field descriptions.
+
+## Common Platform IDs
+
+- `eth-ethereum` - Ethereum (ERC20 tokens)
+- `bnb-binance-coin` - BNB Chain (BEP20 tokens)
+- `matic-polygon` - Polygon
+- `avax-avalanche` - Avalanche C-Chain
+- `ftm-fantom` - Fantom
+- `sol-solana` - Solana (SPL tokens)
+- `arb-arbitrum` - Arbitrum
+- `op-optimism` - Optimism
+
+## Notes
+
+- Contract addresses are case-insensitive but typically shown in lowercase
+- ERC20 is the most common token standard on Ethereum
+- The same token may have contracts on multiple platforms (multi-chain)
+- Historical contract data requires a paid plan
+- Available on free tier (except contract history)
+
+## Related Commands
+
+- [`ticker`](/api/ticker) - Get ticker data by coin ID
+- [`coins`](/api/coins) - List all coins
+- [`search`](/api/search) - Search for tokens

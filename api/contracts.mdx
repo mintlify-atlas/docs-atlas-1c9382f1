@@ -1,0 +1,97 @@
+---
+title: contracts
+description: List smart contracts on a platform
+icon: file-contract
+---
+
+## Overview
+
+List all smart contracts deployed on a specific blockchain platform.
+
+## Usage
+
+```bash
+coinpaprika-cli contracts <platform_id> [options]
+```
+
+## Arguments
+
+<ParamField path="platform_id" type="string" required>
+  Platform ID (e.g., `eth-ethereum`, `bnb-binance-coin`, `sol-solana`)
+</ParamField>
+
+## Options
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of results to return (default: 50)
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper (for scripts/piping)
+</ParamField>
+
+## Examples
+
+### List Ethereum contracts
+
+```bash
+coinpaprika-cli contracts eth-ethereum --limit 20
+```
+
+### Get Binance Smart Chain contracts
+
+```bash
+coinpaprika-cli contracts bnb-binance-coin --limit 10
+```
+
+### JSON output for automation
+
+```bash
+coinpaprika-cli contracts eth-ethereum --output json --raw --limit 100
+```
+
+## Response Fields
+
+<ResponseField name="address" type="string">
+  Smart contract address on the blockchain
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Contract type (e.g., ERC-20, BEP-20)
+</ResponseField>
+
+<ResponseField name="id" type="string">
+  CoinPaprika coin ID associated with the contract
+</ResponseField>
+
+<ResponseField name="active" type="boolean">
+  Whether the contract is actively tracked
+</ResponseField>
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/contracts/{platform_id}
+```
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="platforms" icon="layer-group" href="/api/platforms">
+    List available contract platforms
+  </Card>
+  <Card title="contract-ticker" icon="chart-line" href="/api/contract-ticker">
+    Get ticker data by contract address
+  </Card>
+</CardGroup>
+
+## Notes
+
+- Use the `platforms` command first to see available platform IDs
+- Contract addresses are case-sensitive
+- Results are paginated via the `--limit` option
+- Free tier includes contract data for major platforms

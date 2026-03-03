@@ -1,0 +1,170 @@
+---
+title: "person"
+description: "Get details about a person in the crypto industry"
+---
+
+## Overview
+
+Retrieve detailed information about notable people in the cryptocurrency industry, including their roles, projects, and social links.
+
+## Usage
+
+```bash
+coinpaprika-cli person <person_id> [OPTIONS]
+```
+
+## Arguments
+
+<ParamField path="person_id" type="string" required>
+  The unique identifier for the person (e.g., `vitalik-buterin`, `satoshi-nakamoto`, `changpeng-zhao`)
+</ParamField>
+
+## Options
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper (useful for scripting)
+</ParamField>
+
+## Examples
+
+### Get Vitalik Buterin's profile
+
+```bash
+coinpaprika-cli person vitalik-buterin
+```
+
+### Get Satoshi Nakamoto's information
+
+```bash
+coinpaprika-cli person satoshi-nakamoto
+```
+
+### Get person details as JSON
+
+```bash
+coinpaprika-cli person changpeng-zhao --output json
+```
+
+### Research project founders
+
+```bash
+coinpaprika-cli person gavin-wood --output json
+```
+
+## Response
+
+The command returns detailed information about the person:
+
+```json
+{
+  "id": "vitalik-buterin",
+  "name": "Vitalik Buterin",
+  "description": "Vitalik Buterin is a Russian-Canadian programmer and writer primarily known as a co-founder of Ethereum and as a co-founder of Bitcoin Magazine. Buterin was born in Russia and lived there until the age of six when his parents emigrated to Canada in search of better employment opportunities.",
+  "teams_count": 3,
+  "links": {
+    "twitter": ["https://twitter.com/VitalikButerin"],
+    "github": ["https://github.com/vbuterin"],
+    "medium": ["https://medium.com/@VitalikButerin"]
+  },
+  "positions": [
+    {
+      "coin_id": "eth-ethereum",
+      "coin_name": "Ethereum",
+      "position": "Co-Founder"
+    },
+    {
+      "coin_id": "btc-bitcoin",
+      "coin_name": "Bitcoin Magazine",
+      "position": "Co-Founder"
+    }
+  ]
+}
+```
+
+## Response Fields
+
+<ResponseField name="id" type="string">
+  Unique person identifier
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Full name of the person
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Biographical information and background
+</ResponseField>
+
+<ResponseField name="teams_count" type="number">
+  Number of projects/teams this person is involved with
+</ResponseField>
+
+<ResponseField name="links" type="object">
+  Social media and website links
+  - `twitter` - Twitter/X profile URLs
+  - `github` - GitHub profile URLs
+  - `medium` - Medium blog URLs
+  - `linkedin` - LinkedIn profile URLs
+  - Other platform links as available
+</ResponseField>
+
+<ResponseField name="positions" type="array">
+  List of positions held in various cryptocurrency projects
+</ResponseField>
+
+### Position Object
+
+<ResponseField name="coin_id" type="string">
+  CoinPaprika ID of the associated cryptocurrency
+</ResponseField>
+
+<ResponseField name="coin_name" type="string">
+  Display name of the cryptocurrency
+</ResponseField>
+
+<ResponseField name="position" type="string">
+  Role or position title (e.g., "Founder", "CEO", "Developer", "Advisor")
+</ResponseField>
+
+## Notes
+
+- Person IDs are typically formatted as `firstname-lastname` in lowercase
+- The `positions` array shows current and past roles
+- Links include social media and professional profiles
+- All values may be `null` if data is unavailable
+- Available on free tier
+
+## Finding Person IDs
+
+You can discover person IDs through:
+
+1. **Search command**: Find people by name
+   ```bash
+   coinpaprika-cli search "vitalik" --categories people
+   ```
+
+2. **Coin details**: Person IDs are included in coin team information
+   ```bash
+   coinpaprika-cli coin eth-ethereum --output json
+   ```
+
+3. **Common format**: Usually `firstname-lastname` (e.g., `satoshi-nakamoto`)
+
+## Common Person IDs
+
+- `vitalik-buterin` - Ethereum co-founder
+- `satoshi-nakamoto` - Bitcoin creator
+- `changpeng-zhao` - Binance founder
+- `brian-armstrong` - Coinbase CEO
+- `charles-hoskinson` - Cardano founder
+- `gavin-wood` - Polkadot founder
+- `justin-sun` - TRON founder
+
+## Related Commands
+
+- [`search`](/api/search) - Search for people by name
+- [`coin`](/api/coin) - Get coin details including team information

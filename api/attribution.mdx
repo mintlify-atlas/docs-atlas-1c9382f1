@@ -1,0 +1,237 @@
+---
+title: attribution
+description: Get ready-to-use attribution snippets for CoinPaprika
+icon: copyright
+---
+
+## Overview
+
+Generate copy-paste attribution snippets for crediting CoinPaprika in your projects. While attribution is not required, it's appreciated.
+
+## Usage
+
+```bash
+coinpaprika-cli attribution
+```
+
+## Options
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper
+</ParamField>
+
+## Examples
+
+### Display all snippets
+
+```bash
+coinpaprika-cli attribution
+```
+
+**Output:**
+```
+─── CoinPaprika attribution snippets (copy & paste) ───
+
+HTML:
+  <a href="https://coinpaprika.com">Powered by CoinPaprika</a>
+
+React/JSX:
+  <a href="https://coinpaprika.com" target="_blank" rel="noopener">
+    Powered by CoinPaprika
+  </a>
+
+Markdown:
+  [Powered by CoinPaprika](https://coinpaprika.com)
+
+Plain text:
+  Data provided by CoinPaprika (https://coinpaprika.com)
+
+GitHub README badge:
+  [![CoinPaprika](https://img.shields.io/badge/data-CoinPaprika-green)](https://coinpaprika.com)
+
+Data is free forever. Attribution is appreciated, not required.
+API: api.coinpaprika.com
+```
+
+### JSON output for automation
+
+```bash
+coinpaprika-cli attribution --output json --raw
+```
+
+**Response:**
+```json
+{
+  "name": "CoinPaprika",
+  "url": "https://coinpaprika.com",
+  "api": "https://api.coinpaprika.com",
+  "html": "<a href=\"https://coinpaprika.com\">Powered by CoinPaprika</a>",
+  "markdown": "[Powered by CoinPaprika](https://coinpaprika.com)",
+  "badge": "https://img.shields.io/badge/data-CoinPaprika-green"
+}
+```
+
+## Attribution Formats
+
+### HTML
+
+Simple link for websites:
+
+```html
+<a href="https://coinpaprika.com">Powered by CoinPaprika</a>
+```
+
+### React/JSX
+
+React component with proper attributes:
+
+```jsx
+<a href="https://coinpaprika.com" target="_blank" rel="noopener">
+  Powered by CoinPaprika
+</a>
+```
+
+### Markdown
+
+For README files and documentation:
+
+```markdown
+[Powered by CoinPaprika](https://coinpaprika.com)
+```
+
+### Plain Text
+
+For console output or text files:
+
+```
+Data provided by CoinPaprika (https://coinpaprika.com)
+```
+
+### GitHub Badge
+
+Shields.io badge for GitHub README:
+
+```markdown
+[![CoinPaprika](https://img.shields.io/badge/data-CoinPaprika-green)](https://coinpaprika.com)
+```
+
+Renders as: [![CoinPaprika](https://img.shields.io/badge/data-CoinPaprika-green)](https://coinpaprika.com)
+
+## Response Fields
+
+<ResponseField name="name" type="string">
+  Service name: `CoinPaprika`
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  Main website URL: `https://coinpaprika.com`
+</ResponseField>
+
+<ResponseField name="api" type="string">
+  API base URL: `https://api.coinpaprika.com`
+</ResponseField>
+
+<ResponseField name="html" type="string">
+  HTML anchor tag snippet
+</ResponseField>
+
+<ResponseField name="markdown" type="string">
+  Markdown link format
+</ResponseField>
+
+<ResponseField name="badge" type="string">
+  Shields.io badge URL
+</ResponseField>
+
+## Integration Examples
+
+### Footer in Web App
+
+```html
+<footer>
+  <p>
+    Market data provided by
+    <a href="https://coinpaprika.com">CoinPaprika</a>
+  </p>
+</footer>
+```
+
+### React Component
+
+```jsx
+const Attribution = () => (
+  <div className="attribution">
+    Powered by{' '}
+    <a 
+      href="https://coinpaprika.com" 
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      CoinPaprika
+    </a>
+  </div>
+);
+```
+
+### Command-line Tool Output
+
+```bash
+# Append attribution to your CLI output
+echo "Data provided by CoinPaprika (https://coinpaprika.com)"
+```
+
+### Documentation
+
+```markdown
+## Data Source
+
+This project uses cryptocurrency data from [CoinPaprika](https://coinpaprika.com),
+a free API with 8,000+ coins and real-time market data.
+
+[![CoinPaprika](https://img.shields.io/badge/data-CoinPaprika-green)](https://coinpaprika.com)
+```
+
+## Attribution Policy
+
+<Info>
+  **Attribution is appreciated but not required**
+  
+  - Free tier: No attribution mandate
+  - Paid plans: No attribution mandate
+  - Commercial use: Allowed (check plan limits)
+  
+  Attribution helps others discover the API.
+</Info>
+
+## Customization
+
+Feel free to customize the text while keeping the link:
+
+```html
+<!-- Custom variations -->
+<a href="https://coinpaprika.com">Data from CoinPaprika</a>
+<a href="https://coinpaprika.com">Crypto data by CoinPaprika</a>
+<a href="https://coinpaprika.com">Market data: CoinPaprika</a>
+```
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="plans" icon="tag" href="/api/plans">
+    View pricing and plan details
+  </Card>
+  <Card title="global" icon="globe" href="/api/global">
+    Get market overview data to display
+  </Card>
+</CardGroup>
+
+## Notes
+
+- Attribution is voluntary for all plans (free and paid)
+- Links should point to `coinpaprika.com` (not the API subdomain)
+- Use `target="_blank"` for external links in web apps
+- Consider adding attribution in your app's About/Credits section

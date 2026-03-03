@@ -1,0 +1,141 @@
+---
+title: key-info
+description: Check API key information and usage statistics
+icon: key
+---
+
+<Note>
+  **Paid Feature** — Requires a valid API key
+  
+  [Get API key](https://coinpaprika.com/api/pricing) · [Set API key](/api/config#set-key)
+</Note>
+
+## Overview
+
+Retrieve information about your API key, including plan details and usage statistics.
+
+## Usage
+
+```bash
+coinpaprika-cli key-info
+```
+
+## Options
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper (for scripts/piping)
+</ParamField>
+
+## Examples
+
+### Check key status
+
+```bash
+coinpaprika-cli key-info
+```
+
+### JSON output for monitoring
+
+```bash
+coinpaprika-cli key-info --output json
+```
+
+### Script to check remaining credits
+
+```bash
+#!/bin/bash
+usage=$(coinpaprika-cli key-info --output json --raw | jq -r '.usage')
+echo "API usage: $usage"
+```
+
+## Response Fields
+
+<ResponseField name="plan" type="string">
+  Your current subscription plan (e.g., "Starter", "Business", "Enterprise")
+</ResponseField>
+
+<ResponseField name="usage" type="object">
+  Usage statistics for your API key (structure varies by plan)
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Additional information or warnings about your account
+</ResponseField>
+
+## API Endpoint
+
+```
+GET https://api-pro.coinpaprika.com/v1/key/info
+```
+
+**Headers:**
+```
+Authorization: <your-api-key>
+```
+
+## Error Messages
+
+<Warning>
+  **No API key configured**
+  
+  If you see this error, you need to set up your API key first:
+  
+  ```bash
+  coinpaprika-cli config set-key <YOUR_KEY>
+  ```
+  
+  Or use the onboarding wizard:
+  
+  ```bash
+  coinpaprika-cli onboard
+  ```
+</Warning>
+
+## Setting Your API Key
+
+There are three ways to provide your API key:
+
+<Steps>
+  <Step title="Config file (recommended)">
+    ```bash
+    coinpaprika-cli config set-key <YOUR_KEY>
+    ```
+    
+    Saves to `~/.config/coinpaprika-cli/config.toml`
+  </Step>
+  
+  <Step title="Environment variable">
+    ```bash
+    export COINPAPRIKA_API_KEY=<YOUR_KEY>
+    coinpaprika-cli key-info
+    ```
+  </Step>
+  
+  <Step title="Command line flag">
+    ```bash
+    coinpaprika-cli key-info --api-key <YOUR_KEY>
+    ```
+  </Step>
+</Steps>
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="config" icon="gear" href="/api/config">
+    Manage CLI configuration
+  </Card>
+  <Card title="plans" icon="tag" href="/api/plans">
+    View pricing plans
+  </Card>
+</CardGroup>
+
+## Notes
+
+- Free tier users don't need an API key (20,000 calls/month)
+- Key info is cached for 5 minutes to avoid unnecessary API calls
+- Usage statistics update in near real-time
+- Contact support if usage numbers seem incorrect

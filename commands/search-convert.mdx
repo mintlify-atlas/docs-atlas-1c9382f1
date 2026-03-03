@@ -1,0 +1,368 @@
+---
+title: Search & Conversion
+description: Search for coins, exchanges, people, and tags, or convert between currencies
+---
+
+## Commands Overview
+
+Utility commands for finding data and converting currencies:
+
+- `search` - Search across coins, exchanges, people, and tags
+- `convert` - Convert between two currencies
+
+## Search
+
+```bash
+coinpaprika-cli search <QUERY> [OPTIONS]
+```
+
+Search for coins, exchanges, people, and tags across the CoinPaprika database.
+
+### Arguments
+
+- `<QUERY>` - Search query (e.g., coin name, exchange name, person name)
+
+### Options
+
+- `--categories <CATEGORIES>` - Comma-separated categories to search (optional)
+  - Available: `currencies`, `exchanges`, `icos`, `people`, `tags`
+- `--limit <NUMBER>` - Maximum results per category (default: `10`)
+- `--modifier <MODIFIER>` - Search modifier (e.g., `symbol_search`)
+
+### Examples
+
+<CodeGroup>
+```bash Search Everything
+coinpaprika-cli search bitcoin
+```
+
+```bash Search Specific Categories
+coinpaprika-cli search ethereum --categories currencies,exchanges
+```
+
+```bash Limit Results
+coinpaprika-cli search "shiba inu" --limit 5
+```
+
+```bash Symbol Search
+coinpaprika-cli search BTC --modifier symbol_search
+```
+
+```bash JSON Output
+coinpaprika-cli search cardano --output json
+```
+</CodeGroup>
+
+### Search Categories
+
+#### Currencies (Coins)
+Returns:
+- `id` - Coin identifier
+- `name` - Coin name
+- `symbol` - Ticker symbol
+- `rank` - Market rank
+- `is_active` - Active status
+- `type` - Coin/token type
+
+#### Exchanges
+Returns:
+- `id` - Exchange identifier
+- `name` - Exchange name
+
+#### People
+Returns:
+- `id` - Person identifier
+- `name` - Person name
+- `teams_count` - Number of teams/projects
+
+#### Tags
+Returns:
+- `id` - Tag identifier
+- `name` - Tag name
+- `coin_counter` - Number of coins with tag
+- `ico_counter` - Number of ICOs with tag
+
+### Practical Examples
+
+#### Find a Coin
+
+```bash
+# Search by name
+coinpaprika-cli search "polygon"
+
+# Search by symbol
+coinpaprika-cli search "MATIC" --modifier symbol_search
+
+# Get coin ID for other commands
+coin_id=$(coinpaprika-cli search bitcoin --categories currencies --output json --raw | jq -r '.currencies[0].id')
+echo $coin_id  # btc-bitcoin
+```
+
+#### Find an Exchange
+
+```bash
+# Search for exchanges
+coinpaprika-cli search binance --categories exchanges
+
+# Get exchange ID
+exchange_id=$(coinpaprika-cli search kraken --categories exchanges --output json --raw | jq -r '.exchanges[0].id')
+coinpaprika-cli exchange $exchange_id
+```
+
+#### Find Person/Team
+
+```bash
+# Search for founders or team members
+coinpaprika-cli search "vitalik buterin" --categories people
+coinpaprika-cli search "satoshi nakamoto" --categories people
+```
+
+#### Browse by Category
+
+```bash
+# Find all DeFi coins
+coinpaprika-cli search defi --categories tags
+
+# Find meme coins
+coinpaprika-cli search meme --categories tags
+```
+
+#### Extract Search Results
+
+```bash
+# Get all matching coin IDs
+coinpaprika-cli search ethereum --categories currencies --output json --raw | \
+  jq -r '.currencies[].id'
+
+# Get top result details
+coinpaprika-cli search bitcoin --output json --raw | \
+  jq '.currencies[0] | {id, name, symbol, rank}'
+```
+
+## Convert
+
+```bash
+coinpaprika-cli convert <BASE_ID> <QUOTE_ID> [OPTIONS]
+```
+
+Convert between two currencies using current exchange rates.
+
+### Arguments
+
+- `<BASE_ID>` - Base currency ID (e.g., `btc-bitcoin`)
+- `<QUOTE_ID>` - Quote currency ID (e.g., `eth-ethereum`, `usd-us-dollars`)
+
+### Options
+
+- `--amount <NUMBER>` - Amount to convert (default: `1`)
+
+### Examples
+
+<CodeGroup>
+```bash Bitcoin to Ethereum
+coinpaprika-cli convert btc-bitcoin eth-ethereum
+```
+
+```bash 0.5 BTC to USD
+coinpaprika-cli convert btc-bitcoin usd-us-dollars --amount 0.5
+```
+
+```bash Ethereum to Bitcoin
+coinpaprika-cli convert eth-ethereum btc-bitcoin --amount 10
+```
+
+```bash JSON Output
+coinpaprika-cli convert btc-bitcoin usd-us-dollars --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+- `base_currency_id` - Base currency identifier
+- `base_currency_name` - Base currency name
+- `base_price_last_updated` - Base price update time
+- `quote_currency_id` - Quote currency identifier
+- `quote_currency_name` - Quote currency name
+- `quote_price_last_updated` - Quote price update time
+- `amount` - Input amount
+- `price` - Converted amount
+
+### Supported Currency IDs
+
+**Cryptocurrencies:**
+- Use coin IDs: `btc-bitcoin`, `eth-ethereum`, `usdt-tether`
+- Find IDs with: `coinpaprika-cli search <name>`
+
+**Fiat currencies:**
+- `usd-us-dollars` - US Dollar
+- `eur-euro` - Euro
+- `gbp-pound-sterling` - British Pound
+- `jpy-japanese-yen` - Japanese Yen
+- Many more available
+
+### Practical Examples
+
+#### Currency Converter
+
+```bash
+#!/bin/bash
+# Simple converter script
+base="$1"
+quote="$2"
+amount="$3"
+
+result=$(coinpaprika-cli convert $base $quote --amount $amount --output json --raw)
+converted=$(echo $result | jq -r '.price')
+
+echo "$amount $base = $converted $quote"
+```
+
+Usage:
+```bash
+./converter.sh btc-bitcoin usd-us-dollars 2.5
+# Output: 2.5 btc-bitcoin = 162500.75 usd-us-dollars
+```
+
+#### Portfolio Value Calculator
+
+```bash
+# Calculate total portfolio value in USD
+declare -A holdings
+holdings["btc-bitcoin"]=0.5
+holdings["eth-ethereum"]=10
+holdings["ada-cardano"]=1000
+
+total=0
+for coin in "${!holdings[@]}"; do
+  amount=${holdings[$coin]}
+  value=$(coinpaprika-cli convert $coin usd-us-dollars --amount $amount --output json --raw | jq -r '.price')
+  echo "$coin: \$$value"
+  total=$(echo "$total + $value" | bc)
+done
+echo "Total: \$$total"
+```
+
+#### Exchange Rate Monitor
+
+```bash
+# Monitor BTC/USD exchange rate
+while true; do
+  rate=$(coinpaprika-cli convert btc-bitcoin usd-us-dollars --output json --raw | jq -r '.price')
+  echo "$(date): 1 BTC = \$$rate USD"
+  sleep 300  # Check every 5 minutes
+done
+```
+
+#### Cross-Currency Comparison
+
+```bash
+# Compare 1 BTC value in multiple currencies
+currencies=("usd-us-dollars" "eur-euro" "gbp-pound-sterling")
+for currency in "${currencies[@]}"; do
+  value=$(coinpaprika-cli convert btc-bitcoin $currency --output json --raw | jq -r '.price')
+  name=$(coinpaprika-cli convert btc-bitcoin $currency --output json --raw | jq -r '.quote_currency_name')
+  echo "1 BTC = $value $name"
+done
+```
+
+#### Arbitrage Calculator
+
+```bash
+# Calculate potential arbitrage between exchanges
+# Assumes you have exchange prices
+buy_price=65000  # USD
+sell_rate=$(coinpaprika-cli convert usd-us-dollars btc-bitcoin --amount $buy_price --output json --raw | jq -r '.price')
+profit=$(echo "$sell_rate - 1.0" | bc)
+echo "Buy 1 BTC at \$$buy_price"
+echo "Potential profit: $profit BTC"
+```
+
+## Search Tips
+
+### Finding Coin IDs
+
+1. **By name:**
+   ```bash
+   coinpaprika-cli search "bitcoin"
+   ```
+
+2. **By symbol:**
+   ```bash
+   coinpaprika-cli search "BTC" --modifier symbol_search
+   ```
+
+3. **Exact match:**
+   ```bash
+   coinpaprika-cli search "ethereum" --categories currencies --limit 1
+   ```
+
+### Narrow Your Search
+
+```bash
+# Only search coins (faster)
+coinpaprika-cli search polygon --categories currencies
+
+# Search multiple categories
+coinpaprika-cli search binance --categories exchanges,currencies
+```
+
+### Working with Results
+
+```bash
+# Get first result ID
+coinpaprika-cli search cardano --categories currencies --output json --raw | \
+  jq -r '.currencies[0].id'
+
+# Check if coin exists
+if coinpaprika-cli search "$coin_name" --categories currencies --output json --raw | jq -e '.currencies[0]' > /dev/null; then
+  echo "Coin found!"
+fi
+```
+
+## Use Cases
+
+### Before Using Other Commands
+
+```bash
+# Find coin ID first, then get details
+coin_id=$(coinpaprika-cli search "polkadot" --categories currencies --output json --raw | jq -r '.currencies[0].id')
+coinpaprika-cli ticker $coin_id
+```
+
+### Portfolio Management
+
+```bash
+# Convert holdings to common currency
+coinpaprika-cli convert btc-bitcoin usd-us-dollars --amount 2.5
+coinpaprika-cli convert eth-ethereum usd-us-dollars --amount 15
+```
+
+### Price Comparison
+
+```bash
+# Compare crypto-to-crypto exchange rates
+coinpaprika-cli convert eth-ethereum btc-bitcoin
+coinpaprika-cli convert btc-bitcoin eth-ethereum
+```
+
+### Research
+
+```bash
+# Discover coins by category
+coinpaprika-cli search "layer 1" --categories tags
+coinpaprika-cli search "defi" --categories tags
+```
+
+## API Details
+
+- **Search:** `/search`
+- **Convert:** `/price-converter`
+- **Method:** GET
+- **Rate Limit:** Counts toward your monthly limit
+- **API Key:** Not required (optional for higher limits)
+
+## Related Commands
+
+- [`coins`](/commands/coins) - List all coins
+- [`ticker`](/commands/tickers#get-ticker) - Get price data
+- [`exchanges`](/commands/exchanges) - List exchanges

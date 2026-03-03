@@ -1,0 +1,308 @@
+---
+title: plans
+description: View CoinPaprika pricing plans and free tier details
+icon: tag
+---
+
+## Overview
+
+Display detailed information about CoinPaprika's free tier and paid plan options. Use this command to understand what's included in each tier and decide if you need to upgrade.
+
+## Usage
+
+```bash
+coinpaprika-cli plans
+```
+
+## Options
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper
+</ParamField>
+
+## Examples
+
+### Display plan information
+
+```bash
+coinpaprika-cli plans
+```
+
+**Output:**
+```
+─── Free tier ($0/mo, no API key needed) ───
+
+Rate limits
+  20,000 calls/month
+  Data updates every ~10 minutes
+
+Coverage
+  25+ endpoints
+  2,000 assets
+  Personal use
+
+Historical data
+  Daily OHLCV:    up to 1 year back
+  Hourly OHLCV:   last 24 hours
+  OHLCV interval: 24h only
+  5-min / ticker history: not available
+
+Not included
+  Circulating supply
+  API ID mappings
+  WebSockets
+  Redistribution rights
+  SLA / dedicated infrastructure
+
+─── Need more? ───
+
+Paid plans add: full history, 5-min intervals, circulating supply,
+higher limits, WebSockets, commercial use, and priority support.
+
+See current pricing:  https://coinpaprika.com/api/pricing
+Set your API key:     coinpaprika-cli config set-key <KEY>
+```
+
+### JSON output
+
+```bash
+coinpaprika-cli plans --output json
+```
+
+## Free Tier Details
+
+<CardGroup cols={2}>
+  <Card title="20,000 calls/month" icon="gauge">
+    Generous rate limits for personal projects
+  </Card>
+  <Card title="No API key required" icon="lock-open">
+    Start using immediately
+  </Card>
+  <Card title="2,000 assets" icon="coins">
+    Coverage of major cryptocurrencies
+  </Card>
+  <Card title="25+ endpoints" icon="plug">
+    Access to most API features
+  </Card>
+</CardGroup>
+
+### What's Included (Free)
+
+<ResponseField name="Rate limits" type="feature">
+  - 20,000 API calls per month
+  - Data updates every ~10 minutes
+  - No credit card required
+</ResponseField>
+
+<ResponseField name="Coverage" type="feature">
+  - 25+ REST API endpoints
+  - 2,000 cryptocurrency assets
+  - Personal use license
+</ResponseField>
+
+<ResponseField name="Historical data" type="feature">
+  - Daily OHLCV: Up to 1 year back
+  - Hourly OHLCV: Last 24 hours only
+  - OHLCV intervals: 24h only
+  - No ticker history or 5-minute intervals
+</ResponseField>
+
+### What's NOT Included (Free)
+
+<Warning>
+  Free tier does not include:
+  
+  - Circulating supply data
+  - API ID mappings across platforms
+  - WebSocket connections
+  - Commercial/redistribution rights
+  - SLA guarantees
+  - Dedicated infrastructure
+  - Priority support
+</Warning>
+
+## Paid Plans Overview
+
+### Starter Plan
+
+<Card title="Starter" icon="rocket">
+  Ideal for developers and small applications
+  
+  - Higher rate limits
+  - Full historical data
+  - 5-minute OHLCV intervals
+  - Ticker history endpoint
+  - Commercial use allowed
+  
+  [View pricing →](https://coinpaprika.com/api/pricing)
+</Card>
+
+### Business Plan
+
+<Card title="Business" icon="building">
+  For production apps and data platforms
+  
+  - Everything in Starter
+  - API ID mappings
+  - WebSocket support
+  - Higher limits
+  - Priority support
+  
+  [View pricing →](https://coinpaprika.com/api/pricing)
+</Card>
+
+### Enterprise Plan
+
+<Card title="Enterprise" icon="server">
+  Custom solutions for large-scale operations
+  
+  - Everything in Business
+  - Custom rate limits
+  - Dedicated infrastructure
+  - SLA guarantees
+  - Technical account manager
+  
+  [Contact sales →](https://coinpaprika.com/api/pricing)
+</Card>
+
+## Feature Comparison
+
+| Feature | Free | Starter | Business | Enterprise |
+|---------|------|---------|----------|------------|
+| **Rate limit** | 20k/mo | 200k/mo | 1M+/mo | Custom |
+| **Update frequency** | ~10 min | Real-time | Real-time | Real-time |
+| **Historical OHLCV** | 1 year | Full | Full | Full |
+| **5-min intervals** | ❌ | ✅ | ✅ | ✅ |
+| **Ticker history** | ❌ | ✅ | ✅ | ✅ |
+| **ID mappings** | ❌ | ❌ | ✅ | ✅ |
+| **WebSockets** | ❌ | ❌ | ✅ | ✅ |
+| **Commercial use** | Personal | ✅ | ✅ | ✅ |
+| **SLA** | ❌ | ❌ | ❌ | ✅ |
+| **Support** | Community | Email | Priority | Dedicated |
+
+## Upgrading
+
+### Step 1: Get an API key
+
+1. Visit [coinpaprika.com/api/pricing](https://coinpaprika.com/api/pricing)
+2. Choose your plan (Starter, Business, or Enterprise)
+3. Complete signup and payment
+4. Receive your API key via email
+
+### Step 2: Configure the CLI
+
+```bash
+# Option 1: Interactive setup
+coinpaprika-cli onboard
+
+# Option 2: Direct configuration
+coinpaprika-cli config set-key <YOUR_API_KEY>
+```
+
+### Step 3: Verify
+
+```bash
+# Check key status
+coinpaprika-cli key-info
+
+# Test with a paid feature
+coinpaprika-cli ticker-history btc-bitcoin --start 2024-01-01
+```
+
+## When to Upgrade
+
+Consider upgrading if you need:
+
+<AccordionGroup>
+  <Accordion title="Higher rate limits">
+    Free tier: 20,000 calls/month
+    
+    If your app makes more than ~650 requests per day, you'll hit the limit. Paid plans offer 200,000+ calls/month.
+  </Accordion>
+  
+  <Accordion title="Historical data">
+    Free tier: 1 year of daily OHLCV, 24h of hourly
+    
+    Paid plans provide full historical data going back to listing date, with 5-minute intervals.
+  </Accordion>
+  
+  <Accordion title="Real-time updates">
+    Free tier: ~10 minute delays
+    
+    Paid plans offer real-time data updates for live price tracking.
+  </Accordion>
+  
+  <Accordion title="Commercial use">
+    Free tier: Personal use only
+    
+    Paid plans allow commercial use, redistribution, and embedding in products.
+  </Accordion>
+  
+  <Accordion title="Advanced features">
+    - Ticker history endpoint (Starter+)
+    - ID mappings across platforms (Business+)
+    - WebSocket streaming (Business+)
+    - SLA guarantees (Enterprise)
+  </Accordion>
+</AccordionGroup>
+
+## Response Fields (JSON)
+
+<ResponseField name="free_tier" type="object">
+  Detailed information about the free tier
+  
+  <Expandable title="Free tier fields">
+    <ResponseField name="rate_limit" type="string">
+      Monthly API call limit
+    </ResponseField>
+    <ResponseField name="update_frequency" type="string">
+      How often data is updated
+    </ResponseField>
+    <ResponseField name="endpoints" type="string">
+      Number of available endpoints
+    </ResponseField>
+    <ResponseField name="assets" type="string">
+      Number of tracked assets
+    </ResponseField>
+    <ResponseField name="ticker_history" type="boolean">
+      Whether ticker history is available
+    </ResponseField>
+    <ResponseField name="websockets" type="boolean">
+      Whether WebSockets are available
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="paid_plans_url" type="string">
+  URL to pricing page: `https://coinpaprika.com/api/pricing`
+</ResponseField>
+
+<ResponseField name="set_key_command" type="string">
+  Command to set API key: `coinpaprika-cli config set-key <KEY>`
+</ResponseField>
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="config" icon="gear" href="/api/config">
+    Set your API key after upgrading
+  </Card>
+  <Card title="key-info" icon="key" href="/api/key-info">
+    Check your current plan and usage
+  </Card>
+  <Card title="status" icon="heartbeat" href="/api/status">
+    Check API health status
+  </Card>
+</CardGroup>
+
+## Notes
+
+- Free tier requires no signup or API key
+- Pricing is subject to change (check website for current rates)
+- Enterprise plans are custom-quoted based on needs
+- All plans include API access and documentation
+- Academic discounts may be available (contact support)

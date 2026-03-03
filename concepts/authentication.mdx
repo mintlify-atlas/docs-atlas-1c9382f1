@@ -1,0 +1,270 @@
+---
+title: 'Authentication'
+description: 'How to authenticate with the CoinPaprika API using your API key'
+---
+
+## Overview
+
+The CoinPaprika CLI supports both free tier (no authentication) and paid plans (API key required). You can configure your API key using three methods, each with a specific priority order.
+
+<Note>
+  The free tier provides 20,000 API calls per month without requiring an API key. For higher limits and premium features, upgrade to a paid plan at [coinpaprika.com/api/pricing](https://coinpaprika.com/api/pricing).
+</Note>
+
+## API Key Priority
+
+When multiple authentication methods are configured, the CLI resolves your API key in the following priority order:
+
+<Steps>
+  <Step title="CLI Flag (--api-key)">
+    Highest priority. Overrides all other methods.
+    
+    ```bash
+    coinpaprika-cli --api-key YOUR_KEY ticker btc-bitcoin
+    ```
+  </Step>
+  
+  <Step title="Environment Variable">
+    Second priority. Set `COINPAPRIKA_API_KEY` in your shell.
+    
+    ```bash
+    export COINPAPRIKA_API_KEY="YOUR_KEY"
+    coinpaprika-cli ticker btc-bitcoin
+    ```
+  </Step>
+  
+  <Step title="Config File">
+    Lowest priority. Stored in `~/.coinpaprika/config.json`.
+    
+    ```bash
+    coinpaprika-cli config set-key YOUR_KEY
+    coinpaprika-cli ticker btc-bitcoin
+    ```
+  </Step>
+</Steps>
+
+## Authentication Methods
+
+<Tabs>
+  <Tab title="Config File (Recommended)">
+    The recommended method for most users. Your API key is securely stored in `~/.coinpaprika/config.json` with restricted file permissions (0600 on Unix systems).
+
+    ### Interactive Setup
+
+    Use the onboarding wizard for guided setup:
+
+    ```bash
+    coinpaprika-cli onboard
+    ```
+
+    ### Direct Setup
+
+    Set your API key directly:
+
+    ```bash
+    coinpaprika-cli config set-key YOUR_API_KEY
+    ```
+
+    ### Verify Configuration
+
+    Check your current configuration and key source:
+
+    ```bash
+    coinpaprika-cli config show
+    ```
+
+    Example output:
+    ```
+    API Key:    ab12...cd34 (masked)
+    Source:     Config file (~/.coinpaprika/config.json)
+    Config Dir: /home/user/.coinpaprika
+    ```
+
+    ### Remove Configuration
+
+    Delete your config file and API key:
+
+    ```bash
+    coinpaprika-cli config reset
+    ```
+  </Tab>
+  
+  <Tab title="Environment Variable">
+    Useful for CI/CD pipelines, Docker containers, or when you need temporary authentication.
+
+    ### Bash/Zsh
+
+    ```bash
+    export COINPAPRIKA_API_KEY="YOUR_API_KEY"
+    coinpaprika-cli ticker btc-bitcoin
+    ```
+
+    ### Fish Shell
+
+    ```fish
+    set -x COINPAPRIKA_API_KEY "YOUR_API_KEY"
+    coinpaprika-cli ticker btc-bitcoin
+    ```
+
+    ### PowerShell
+
+    ```powershell
+    $env:COINPAPRIKA_API_KEY="YOUR_API_KEY"
+    coinpaprika-cli ticker btc-bitcoin
+    ```
+
+    ### Persistent Environment Variable
+
+    Add to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+
+    ```bash
+    echo 'export COINPAPRIKA_API_KEY="YOUR_API_KEY"' >> ~/.bashrc
+    source ~/.bashrc
+    ```
+  </Tab>
+  
+  <Tab title="CLI Flag">
+    Best for one-off commands or testing different API keys.
+
+    ```bash
+    coinpaprika-cli --api-key YOUR_KEY ticker btc-bitcoin
+    ```
+
+    <Warning>
+      Your API key may be visible in shell history and process lists when using this method. For production use, prefer the config file or environment variable.
+    </Warning>
+
+    ### Use Cases
+
+    - Testing with different API keys
+    - Temporary override of configured key
+    - Scripting with dynamic key selection
+
+    ### Example: Override Config
+
+    ```bash
+    # Use config file key
+    coinpaprika-cli ticker btc-bitcoin
+
+    # Temporarily use a different key
+    coinpaprika-cli --api-key TEMP_KEY ticker eth-ethereum
+    ```
+  </Tab>
+</Tabs>
+
+## How It Works
+
+The CLI determines which authentication method to use based on the priority order defined in `src/config.rs:80-106`:
+
+```rust
+/// Resolve API key with priority: CLI flag > env var > config file
+pub fn resolve_api_key(cli_key: Option<&str>) -> Option<String> {
+    // 1. CLI flag
+    if let Some(key) = cli_key {
+        if !key.is_empty() {
+            return Some(key.to_string());
+        }
+    }
+
+    // 2. Environment variable
+    if let Ok(key) = std::env::var("COINPAPRIKA_API_KEY") {
+        if !key.is_empty() {
+            return Some(key);
+        }
+    }
+
+    // 3. Config file
+    if let Ok(config) = load_config() {
+        if let Some(key) = config.api_key {
+            if !key.is_empty() {
+                return Some(key);
+            }
+        }
+    }
+
+    None
+}
+```
+
+## API Endpoints
+
+The CLI automatically selects the correct API endpoint based on whether you have an API key configured:
+
+- **Free tier (no key):** `https://api.coinpaprika.com/v1`
+- **Paid plans (with key):** `https://api-pro.coinpaprika.com/v1`
+
+This is handled automatically in `src/client.rs:11-16`:
+
+```rust
+let coinpaprika_base = if api_key.is_some() {
+    "https://api-pro.coinpaprika.com/v1".to_string()
+} else {
+    "https://api.coinpaprika.com/v1".to_string()
+};
+```
+
+## Security Best Practices
+
+<Warning>
+  Never commit API keys to version control or share them publicly. Treat your API key like a password.
+</Warning>
+
+### Config File Security
+
+On Unix systems, the CLI automatically sets secure permissions:
+
+- Config directory: `0700` (owner read/write/execute only)
+- Config file: `0600` (owner read/write only)
+
+### Checking Your Key Source
+
+Verify where your API key is being loaded from:
+
+```bash
+coinpaprika-cli config show
+```
+
+Possible sources:
+- `CLI flag (--api-key)`
+- `Environment variable (COINPAPRIKA_API_KEY)`
+- `Config file (~/.coinpaprika/config.json)`
+- `Not set (using free tier)`
+
+## Troubleshooting
+
+### Invalid API Key Error
+
+If you see this error:
+
+```
+Invalid API key. Check your key with `coinpaprika-cli config show`
+```
+
+**Solution:**
+
+1. Verify your key is correct: `coinpaprika-cli config show`
+2. Regenerate your key at [coinpaprika.com/api](https://coinpaprika.com/api)
+3. Update your configuration: `coinpaprika-cli config set-key NEW_KEY`
+
+### Plan Tier Errors
+
+If you see "This endpoint requires a higher-tier plan":
+
+```bash
+# Check your current plan
+coinpaprika-cli key-info
+
+# View available plans
+coinpaprika-cli plans
+```
+
+Upgrade at [coinpaprika.com/api/pricing](https://coinpaprika.com/api/pricing)
+
+## Related Commands
+
+- `coinpaprika-cli config show` - View current configuration
+- `coinpaprika-cli config set-key <KEY>` - Set API key
+- `coinpaprika-cli config reset` - Delete configuration
+- `coinpaprika-cli key-info` - Check API key details (paid plans only)
+- `coinpaprika-cli plans` - View free tier limits and paid plans
+- `coinpaprika-cli onboard` - Interactive setup wizard

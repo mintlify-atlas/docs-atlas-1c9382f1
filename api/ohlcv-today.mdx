@@ -1,0 +1,128 @@
+---
+title: "ohlcv-today"
+description: "Get OHLCV data for today (incomplete day)"
+---
+
+## Overview
+
+Retrieve Open, High, Low, Close, and Volume (OHLCV) data for a specific coin for the current day. This endpoint provides real-time candle data for the ongoing 24-hour period.
+
+## Usage
+
+```bash
+coinpaprika-cli ohlcv-today <coin_id> [OPTIONS]
+```
+
+## Arguments
+
+<ParamField path="coin_id" type="string" required>
+  The unique identifier for the coin in format `symbol-name` (e.g., `btc-bitcoin`, `eth-ethereum`)
+</ParamField>
+
+## Options
+
+<ParamField query="quote" type="string" default="usd">
+  Quote currency for price data. Common values: `usd`, `btc`, `eth`
+</ParamField>
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper (useful for scripting)
+</ParamField>
+
+## Examples
+
+### Get today's OHLCV for Bitcoin
+
+```bash
+coinpaprika-cli ohlcv-today btc-bitcoin
+```
+
+### Get today's OHLCV for Ethereum in BTC
+
+```bash
+coinpaprika-cli ohlcv-today eth-ethereum --quote btc
+```
+
+### Get today's OHLCV as JSON
+
+```bash
+coinpaprika-cli ohlcv-today btc-bitcoin --output json
+```
+
+### Monitor today's performance
+
+```bash
+watch -n 60 'coinpaprika-cli ohlcv-today btc-bitcoin'
+```
+
+## Response
+
+The command returns OHLCV data for the current (incomplete) day:
+
+```json
+[
+  {
+    "time_open": "2024-01-02T00:00:00Z",
+    "time_close": "2024-01-02T14:30:00Z",
+    "open": 42500.75,
+    "high": 43200.50,
+    "low": 42350.25,
+    "close": 42950.00,
+    "volume": 12500000000,
+    "market_cap": 840000000000
+  }
+]
+```
+
+## Response Fields
+
+<ResponseField name="time_open" type="string">
+  ISO 8601 timestamp when today's period started (00:00:00 UTC)
+</ResponseField>
+
+<ResponseField name="time_close" type="string">
+  ISO 8601 timestamp of the most recent data point
+</ResponseField>
+
+<ResponseField name="open" type="number">
+  Opening price at the start of today
+</ResponseField>
+
+<ResponseField name="high" type="number">
+  Highest price so far today
+</ResponseField>
+
+<ResponseField name="low" type="number">
+  Lowest price so far today
+</ResponseField>
+
+<ResponseField name="close" type="number">
+  Most recent price (current price)
+</ResponseField>
+
+<ResponseField name="volume" type="number">
+  Total trading volume accumulated today
+</ResponseField>
+
+<ResponseField name="market_cap" type="number">
+  Current market capitalization
+</ResponseField>
+
+## Notes
+
+- This endpoint returns **incomplete** data for the current day
+- Data updates in real-time as the day progresses
+- The `close` value represents the current price
+- For the last complete day's data, use [`ohlcv-latest`](/api/ohlcv-latest)
+- All values may be `null` if data is unavailable
+- Available on free tier
+
+## Related Commands
+
+- [`ohlcv-latest`](/api/ohlcv-latest) - Get last full day OHLCV data
+- [`ohlcv`](/api/ohlcv) - Get historical OHLCV data
+- [`ticker`](/api/ticker) - Get current price snapshot

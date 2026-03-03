@@ -1,0 +1,162 @@
+---
+title: "exchange-markets"
+description: "Get trading pairs and markets on a specific exchange"
+---
+
+## Overview
+
+Retrieve a list of all trading pairs (markets) available on a specific cryptocurrency exchange, including price data, volume, and trust scores.
+
+## Usage
+
+```bash
+coinpaprika-cli exchange-markets <exchange_id> [OPTIONS]
+```
+
+## Arguments
+
+<ParamField path="exchange_id" type="string" required>
+  The unique identifier for the exchange (e.g., `binance`, `coinbase`, `kraken`)
+</ParamField>
+
+## Options
+
+<ParamField query="limit" type="number" default="50">
+  Maximum number of markets to return
+</ParamField>
+
+<ParamField query="quotes" type="string" default="USD">
+  Comma-separated list of quote currencies for price data (e.g., `USD,BTC`)
+</ParamField>
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper (useful for scripting)
+</ParamField>
+
+## Examples
+
+### Get top 10 markets on Binance
+
+```bash
+coinpaprika-cli exchange-markets binance --limit 10
+```
+
+### Get Coinbase markets with BTC prices
+
+```bash
+coinpaprika-cli exchange-markets coinbase --quotes BTC --limit 20
+```
+
+### Get Kraken markets as JSON
+
+```bash
+coinpaprika-cli exchange-markets kraken --output json
+```
+
+### Find high-volume trading pairs
+
+```bash
+coinpaprika-cli exchange-markets binance --limit 50 --quotes USD
+```
+
+## Response
+
+The command returns a list of markets on the exchange:
+
+```json
+[
+  {
+    "pair": "BTC/USDT",
+    "base_currency_id": "btc-bitcoin",
+    "base_currency_name": "Bitcoin",
+    "quote_currency_id": "usdt-tether",
+    "quote_currency_name": "Tether",
+    "market_url": "https://www.binance.com/en/trade/BTC_USDT",
+    "category": "Spot",
+    "fee_type": "Percentage",
+    "outlier": false,
+    "reported_volume_24h_share": 12.5,
+    "quotes": {
+      "USD": {
+        "price": 42500.75,
+        "volume_24h": 3000000000
+      }
+    },
+    "trust_score": "high",
+    "last_updated": "2024-01-02T15:30:00Z"
+  }
+]
+```
+
+## Response Fields
+
+<ResponseField name="pair" type="string">
+  Trading pair symbol (e.g., `BTC/USDT`, `ETH/BTC`)
+</ResponseField>
+
+<ResponseField name="base_currency_id" type="string">
+  CoinPaprika ID of the base currency
+</ResponseField>
+
+<ResponseField name="base_currency_name" type="string">
+  Display name of the base currency
+</ResponseField>
+
+<ResponseField name="quote_currency_id" type="string">
+  CoinPaprika ID of the quote currency
+</ResponseField>
+
+<ResponseField name="quote_currency_name" type="string">
+  Display name of the quote currency
+</ResponseField>
+
+<ResponseField name="market_url" type="string">
+  Direct link to trade this pair on the exchange
+</ResponseField>
+
+<ResponseField name="category" type="string">
+  Market category (e.g., `Spot`, `Perpetual`, `Futures`)
+</ResponseField>
+
+<ResponseField name="fee_type" type="string">
+  Type of trading fee structure
+</ResponseField>
+
+<ResponseField name="outlier" type="boolean">
+  Whether this market's price is an outlier compared to other exchanges
+</ResponseField>
+
+<ResponseField name="reported_volume_24h_share" type="number">
+  Percentage of the exchange's total volume from this market
+</ResponseField>
+
+<ResponseField name="quotes" type="object">
+  Price and volume data in requested quote currencies
+</ResponseField>
+
+<ResponseField name="trust_score" type="string">
+  CoinPaprika trust score for this market (e.g., `high`, `medium`, `low`)
+</ResponseField>
+
+<ResponseField name="last_updated" type="string">
+  ISO 8601 timestamp of last data update
+</ResponseField>
+
+## Notes
+
+- Markets are ordered by volume (highest first)
+- The `outlier` flag helps identify suspicious pricing
+- Trust scores help assess market reliability
+- All values may be `null` if data is unavailable
+- Available on free tier
+- Use `--limit` to control response size
+
+## Related Commands
+
+- [`exchange`](/api/exchange-detail) - Get exchange details
+- [`exchanges`](/api/exchanges-list) - List all exchanges
+- [`coin-markets`](/api/coin-markets) - Get markets for a specific coin

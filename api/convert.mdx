@@ -1,0 +1,196 @@
+---
+title: "convert"
+description: "Convert between two currencies"
+---
+
+## Overview
+
+Convert amounts between two cryptocurrencies or between crypto and fiat currencies using real-time exchange rates from CoinPaprika.
+
+## Usage
+
+```bash
+coinpaprika-cli convert <base_id> <quote_id> [OPTIONS]
+```
+
+## Arguments
+
+<ParamField path="base_id" type="string" required>
+  The source currency ID (e.g., `btc-bitcoin`, `eth-ethereum`)
+</ParamField>
+
+<ParamField path="quote_id" type="string" required>
+  The target currency ID (e.g., `eth-ethereum`, `usd-us-dollars`)
+</ParamField>
+
+## Options
+
+<ParamField query="amount" type="number" default="1">
+  Amount to convert (must be non-negative)
+</ParamField>
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper (useful for scripting)
+</ParamField>
+
+## Examples
+
+### Convert 1 BTC to ETH
+
+```bash
+coinpaprika-cli convert btc-bitcoin eth-ethereum
+```
+
+### Convert 0.5 BTC to USD
+
+```bash
+coinpaprika-cli convert btc-bitcoin usd-us-dollars --amount 0.5
+```
+
+### Convert 1000 USDT to BTC
+
+```bash
+coinpaprika-cli convert usdt-tether btc-bitcoin --amount 1000
+```
+
+### Convert ETH to multiple currencies (run separately)
+
+```bash
+coinpaprika-cli convert eth-ethereum usd-us-dollars --amount 10
+coinpaprika-cli convert eth-ethereum btc-bitcoin --amount 10
+```
+
+### Get conversion as JSON for scripting
+
+```bash
+coinpaprika-cli convert btc-bitcoin eth-ethereum --amount 2.5 --output json --raw
+```
+
+### Calculate portfolio value in USD
+
+```bash
+coinpaprika-cli convert eth-ethereum usd-us-dollars --amount 15.75
+```
+
+## Response
+
+The command returns the conversion result:
+
+```json
+{
+  "base_currency_id": "btc-bitcoin",
+  "base_currency_name": "Bitcoin",
+  "base_price_last_updated": "2024-01-02T15:30:00Z",
+  "quote_currency_id": "eth-ethereum",
+  "quote_currency_name": "Ethereum",
+  "quote_price_last_updated": "2024-01-02T15:30:00Z",
+  "amount": 1.0,
+  "price": 18.5
+}
+```
+
+## Response Fields
+
+<ResponseField name="base_currency_id" type="string">
+  CoinPaprika ID of the source currency
+</ResponseField>
+
+<ResponseField name="base_currency_name" type="string">
+  Display name of the source currency
+</ResponseField>
+
+<ResponseField name="base_price_last_updated" type="string">
+  ISO 8601 timestamp when the base currency price was last updated
+</ResponseField>
+
+<ResponseField name="quote_currency_id" type="string">
+  CoinPaprika ID of the target currency
+</ResponseField>
+
+<ResponseField name="quote_currency_name" type="string">
+  Display name of the target currency
+</ResponseField>
+
+<ResponseField name="quote_price_last_updated" type="string">
+  ISO 8601 timestamp when the quote currency price was last updated
+</ResponseField>
+
+<ResponseField name="amount" type="number">
+  Amount being converted (same as input `--amount`)
+</ResponseField>
+
+<ResponseField name="price" type="number">
+  Converted value in the target currency
+</ResponseField>
+
+## Currency IDs
+
+### Common Cryptocurrency IDs
+
+- `btc-bitcoin` - Bitcoin
+- `eth-ethereum` - Ethereum
+- `usdt-tether` - Tether
+- `usdc-usd-coin` - USD Coin
+- `bnb-binance-coin` - BNB
+- `xrp-xrp` - XRP
+- `ada-cardano` - Cardano
+- `sol-solana` - Solana
+- `dot-polkadot` - Polkadot
+- `matic-polygon` - Polygon
+
+### Common Fiat Currency IDs
+
+- `usd-us-dollars` - US Dollar
+- `eur-euro` - Euro
+- `gbp-pounds-sterling` - British Pound
+- `jpy-japanese-yen` - Japanese Yen
+- `cny-yuan-renminbi` - Chinese Yuan
+
+### Finding Currency IDs
+
+Use the search command to find the correct ID:
+
+```bash
+coinpaprika-cli search "US Dollar" --categories currencies
+coinpaprika-cli search cardano
+```
+
+## Notes
+
+- Conversion uses real-time market prices
+- Prices are updated frequently (check `price_last_updated` timestamps)
+- The `--amount` flag must be non-negative (≥ 0)
+- All values may be `null` if price data is unavailable
+- Available on free tier
+- Ideal for portfolio calculations and price comparisons
+
+## Error Handling
+
+### Invalid amount
+
+If you provide a negative amount:
+
+```bash
+coinpaprika-cli convert btc-bitcoin eth-ethereum --amount -1
+# Error: --amount must be non-negative (got -1)
+```
+
+### Invalid currency ID
+
+If a currency ID doesn't exist:
+
+```bash
+coinpaprika-cli convert invalid-id eth-ethereum
+# Error: Currency not found
+```
+
+## Related Commands
+
+- [`ticker`](/api/ticker) - Get current price data
+- [`tickers`](/api/tickers) - List all prices
+- [`search`](/api/search) - Find currency IDs
+- [`coins`](/api/coins) - List all available coins

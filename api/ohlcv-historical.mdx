@@ -1,0 +1,180 @@
+---
+title: 'ohlcv'
+description: 'Get historical OHLCV (candlestick) data for a coin'
+---
+
+<Warning>
+  This is a **PAID feature** requiring a Starter plan or higher. [View pricing](https://coinpaprika.com/api)
+</Warning>
+
+## Overview
+
+Returns historical Open-High-Low-Close-Volume (OHLCV) candlestick data for a specific cryptocurrency. Essential for technical analysis and charting.
+
+## Usage
+
+```bash
+coinpaprika-cli ohlcv <COIN_ID> --start <START_DATE> [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="coin_id" type="string" required>
+  Coin ID in format `symbol-name` (e.g., `btc-bitcoin`)
+</ParamField>
+
+<ParamField path="--start" type="string" required>
+  Start date in ISO format (e.g., `2024-01-01`, `2024-01-01T00:00:00Z`)
+</ParamField>
+
+<ParamField path="--end" type="string">
+  End date in ISO format (defaults to current date if not specified)
+</ParamField>
+
+<ParamField path="--interval" type="string" default="24h">
+  Candle interval: `5m`, `15m`, `30m`, `1h`, `6h`, `12h`, `24h`
+</ParamField>
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of candles to return
+</ParamField>
+
+<ParamField path="--quote" type="string" default="usd">
+  Quote currency (e.g., `usd`, `btc`, `eth`)
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get Bitcoin daily candles for January 2024
+
+```bash
+coinpaprika-cli ohlcv btc-bitcoin --start 2024-01-01 --end 2024-01-31
+```
+
+### Get Ethereum hourly candles
+
+```bash
+coinpaprika-cli ohlcv eth-ethereum --start 2024-01-01 --interval 1h --limit 24
+```
+
+### Get Solana 15-minute candles
+
+```bash
+coinpaprika-cli ohlcv sol-solana --start 2024-03-01 --interval 15m --limit 100
+```
+
+### Get OHLCV data in JSON format
+
+```bash
+coinpaprika-cli ohlcv btc-bitcoin --start 2024-01-01 --output json
+```
+
+## Example Output
+
+### Table Format
+
+```
+┌─────────────────────┬─────────────┬─────────────┬─────────────┬─────────────┬──────────────┬──────────────┐
+│ Time Open           │ Open        │ High        │ Low         │ Close       │ Volume       │ Market Cap   │
+├─────────────────────┼─────────────┼─────────────┼─────────────┼─────────────┼──────────────┼──────────────┤
+│ 2024-01-01 00:00:00 │ $42,000.00  │ $42,500.00  │ $41,800.00  │ $42,156.78  │ $18.2B       │ $825.3B      │
+│ 2024-01-02 00:00:00 │ $42,156.78  │ $43,500.00  │ $42,000.00  │ $43,234.56  │ $19.8B       │ $846.1B      │
+│ 2024-01-03 00:00:00 │ $43,234.56  │ $44,800.00  │ $43,100.00  │ $44,567.89  │ $22.4B       │ $872.4B      │
+│ 2024-01-04 00:00:00 │ $44,567.89  │ $45,200.00  │ $43,500.00  │ $43,890.12  │ $20.1B       │ $859.2B      │
+│ 2024-01-05 00:00:00 │ $43,890.12  │ $45,600.00  │ $43,800.00  │ $45,123.45  │ $24.6B       │ $883.5B      │
+└─────────────────────┴─────────────┴─────────────┴─────────────┴─────────────┴──────────────┴──────────────┘
+```
+
+### JSON Format
+
+```json
+[
+  {
+    "time_open": "2024-01-01T00:00:00Z",
+    "time_close": "2024-01-01T23:59:59Z",
+    "open": 42000.00,
+    "high": 42500.00,
+    "low": 41800.00,
+    "close": 42156.78,
+    "volume": 18200000000,
+    "market_cap": 825300000000
+  },
+  {
+    "time_open": "2024-01-02T00:00:00Z",
+    "time_close": "2024-01-02T23:59:59Z",
+    "open": 42156.78,
+    "high": 43500.00,
+    "low": 42000.00,
+    "close": 43234.56,
+    "volume": 19800000000,
+    "market_cap": 846100000000
+  }
+]
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `time_open` | string | Candle opening time (ISO 8601 format) |
+| `time_close` | string | Candle closing time (ISO 8601 format) |
+| `open` | number | Opening price |
+| `high` | number | Highest price during period |
+| `low` | number | Lowest price during period |
+| `close` | number | Closing price |
+| `volume` | number | Trading volume during period |
+| `market_cap` | number | Market cap at close |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/coins/{coin_id}/ohlcv/historical
+  ?start={start}
+  &end={end}
+  &interval={interval}
+  &limit={limit}
+  &quote={quote}
+```
+
+## Supported Intervals
+
+| Interval | Description | Max History |
+|----------|-------------|-------------|
+| `5m` | 5 minutes | 1 week |
+| `15m` | 15 minutes | 2 weeks |
+| `30m` | 30 minutes | 1 month |
+| `1h` | 1 hour | 3 months |
+| `6h` | 6 hours | 1 year |
+| `12h` | 12 hours | 2 years |
+| `24h` | 1 day | All history |
+
+## Rate Limits
+
+<Warning>
+  This endpoint requires authentication and is subject to plan-specific rate limits:
+  - **Starter**: 25,000 requests/month
+  - **Pro**: 150,000 requests/month
+  - **Business**: 500,000 requests/month
+</Warning>
+
+## Common Use Cases
+
+- Building candlestick charts
+- Technical analysis (moving averages, RSI, MACD)
+- Algorithmic trading strategies
+- Pattern recognition and backtesting
+- Custom trading indicators
+
+## Related Commands
+
+- [ticker-history](/api/ticker-history) - Get historical ticker data
+- [ticker-detail](/api/ticker-detail) - Get current ticker data
+- [coin-detail](/api/coin-detail) - Get detailed coin information

@@ -1,0 +1,189 @@
+---
+title: status
+description: Check CoinPaprika API health and response time
+icon: heart-pulse
+---
+
+## Overview
+
+Verify that the CoinPaprika API is operational and measure response time. Useful for monitoring, health checks, and debugging connectivity issues.
+
+## Usage
+
+```bash
+coinpaprika-cli status
+```
+
+## Options
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper (for scripts/piping)
+</ParamField>
+
+## Examples
+
+### Basic health check
+
+```bash
+coinpaprika-cli status
+```
+
+**Sample output:**
+```
+CoinPaprika API Status
+  Status:        OK
+  Response time: 156ms
+  API key:       Configured
+```
+
+### JSON output for monitoring
+
+```bash
+coinpaprika-cli status --output json
+```
+
+### Integration with monitoring tools
+
+```bash
+#!/bin/bash
+# Health check script for monitoring systems
+
+result=$(coinpaprika-cli status --output json --raw)
+status=$(echo $result | jq -r '.coinpaprika.status')
+response_time=$(echo $result | jq -r '.coinpaprika.response_time_ms')
+
+if [ "$status" = "OK" ] && [ "$response_time" -lt 1000 ]; then
+  echo "CoinPaprika API: Healthy (${response_time}ms)"
+  exit 0
+else
+  echo "CoinPaprika API: Unhealthy"
+  exit 1
+fi
+```
+
+### Check API endpoint from CI/CD
+
+```yaml
+# GitHub Actions example
+- name: Check CoinPaprika API
+  run: |
+    coinpaprika-cli status --output json
+    if [ $? -ne 0 ]; then
+      echo "API is down, skipping integration tests"
+      exit 1
+    fi
+```
+
+## Response Fields
+
+<ResponseField name="coinpaprika" type="object">
+  CoinPaprika API status information
+  
+  <Expandable title="Details">
+    <ResponseField name="status" type="string">
+      API status: `OK` or `ERROR`
+    </ResponseField>
+    
+    <ResponseField name="response_time_ms" type="number">
+      Response time in milliseconds
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="api_key_configured" type="boolean">
+  Whether an API key is currently configured (doesn't validate the key)
+</ResponseField>
+
+## How It Works
+
+The `status` command:
+1. Makes a request to the `/global` endpoint
+2. Measures response time
+3. Checks if the API key is configured locally
+4. Returns aggregated status information
+
+<Info>
+  The status check uses the `/global` endpoint, which is available on both free and paid tiers.
+</Info>
+
+## API Endpoint
+
+The status command tests:
+
+```
+GET https://api.coinpaprika.com/v1/global
+```
+
+or with API key:
+
+```
+GET https://api-pro.coinpaprika.com/v1/global
+```
+
+## Status Codes
+
+<ResponseField name="OK" type="status">
+  API is operational and responding
+</ResponseField>
+
+<ResponseField name="ERROR" type="status">
+  API request failed (network issue, API down, or invalid key)
+</ResponseField>
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Health Monitoring" icon="heart-pulse">
+    Add to monitoring dashboards and alerting systems
+  </Card>
+  <Card title="Uptime Checks" icon="clock">
+    Schedule periodic health checks via cron
+  </Card>
+  <Card title="CI/CD Gates" icon="code-branch">
+    Verify API availability before running tests
+  </Card>
+  <Card title="Debugging" icon="bug">
+    Troubleshoot connectivity and configuration issues
+  </Card>
+</CardGroup>
+
+## Exit Codes
+
+- **0** — API is healthy (status OK)
+- **1** — API error or unreachable
+
+## Performance Benchmarks
+
+Typical response times:
+
+- **< 200ms** — Excellent
+- **200-500ms** — Good
+- **500-1000ms** — Acceptable
+- **> 1000ms** — Slow (may indicate network issues)
+
+<Tip>
+  If response times are consistently high, check your network connection or try using a different DNS resolver.
+</Tip>
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="config" icon="gear" href="/api/config">
+    Check API key configuration
+  </Card>
+  <Card title="key-info" icon="key" href="/api/key-info">
+    Validate API key and check usage
+  </Card>
+</CardGroup>
+
+## Notes
+
+- The status check does **not** consume API credits
+- Response time includes network latency
+- `api_key_configured` only checks if a key is set, not if it's valid
+- Use `key-info` to validate your API key
+- Status check runs against the global endpoint (minimal data transfer)

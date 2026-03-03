@@ -1,0 +1,171 @@
+---
+title: changelog
+description: Track changes to coin IDs over time
+icon: timeline
+---
+
+<Note>
+  **Paid Feature** — Requires Starter plan or higher
+  
+  [View pricing](https://coinpaprika.com/api/pricing) · [Set API key](/api/config#set-key)
+</Note>
+
+## Overview
+
+Retrieve a changelog of coin ID modifications, including renames, mergers, and deprecated IDs. Essential for maintaining data integrity in applications that store coin IDs.
+
+## Usage
+
+```bash
+coinpaprika-cli changelog [options]
+```
+
+## Options
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of changelog entries to return (default: 50)
+</ParamField>
+
+<ParamField path="--page" type="number" default="1">
+  Page number for pagination (default: 1)
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  JSON output without `_meta` wrapper (for scripts/piping)
+</ParamField>
+
+## Examples
+
+### Get recent ID changes
+
+```bash
+coinpaprika-cli changelog --limit 20
+```
+
+### Paginate through changelog
+
+```bash
+# First 50 entries
+coinpaprika-cli changelog --page 1
+
+# Next 50 entries
+coinpaprika-cli changelog --page 2
+```
+
+### JSON output for monitoring
+
+```bash
+coinpaprika-cli changelog --output json --raw --limit 100 > changelog.json
+```
+
+### Check for specific coin changes
+
+```bash
+coinpaprika-cli changelog --output json --raw --limit 1000 | \
+  jq '.[] | select(.old_id == "btc-bitcoin" or .new_id == "btc-bitcoin")'
+```
+
+## Response Structure
+
+The response contains an array of changelog entries:
+
+<ResponseField name="old_id" type="string">
+  Previous coin ID (before the change)
+</ResponseField>
+
+<ResponseField name="new_id" type="string">
+  New coin ID (after the change)
+</ResponseField>
+
+<ResponseField name="change_type" type="string">
+  Type of change (e.g., "rename", "merge", "deprecate")
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp when the change occurred
+</ResponseField>
+
+<ResponseField name="reason" type="string">
+  Description or reason for the change
+</ResponseField>
+
+## API Endpoint
+
+```
+GET https://api-pro.coinpaprika.com/v1/changelog/ids
+```
+
+**Query Parameters:**
+- `limit` — Maximum number of results (default: 50)
+- `page` — Page number (default: 1)
+
+**Headers:**
+```
+Authorization: <your-api-key>
+```
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Data Migration" icon="database">
+    Update stored coin IDs when they change
+  </Card>
+  <Card title="Integration Monitoring" icon="bell">
+    Monitor for breaking changes in coin IDs
+  </Card>
+  <Card title="Historical Analysis" icon="chart-line">
+    Track coin lifecycle and rebranding events
+  </Card>
+  <Card title="Error Prevention" icon="shield-check">
+    Avoid 404 errors from outdated coin IDs
+  </Card>
+</CardGroup>
+
+## Pagination
+
+The changelog is paginated with 50 entries per page by default:
+
+```bash
+# Get total entries from first request
+total=$(coinpaprika-cli changelog --page 1 --output json | jq '.total')
+
+# Calculate total pages
+pages=$(( (total + 49) / 50 ))
+
+# Fetch all pages
+for page in $(seq 1 $pages); do
+  coinpaprika-cli changelog --page $page --output json >> all_changes.json
+done
+```
+
+## Plan Requirements
+
+<Info>
+  **Available on:**
+  - Starter plan and higher
+  
+  Not available on:
+  - Free tier (no API key)
+</Info>
+
+## Related Commands
+
+<CardGroup cols={2}>
+  <Card title="mappings" icon="diagram-project" href="/api/mappings">
+    Get ID mappings across platforms (Business+)
+  </Card>
+  <Card title="coins" icon="coins" href="/api/coins-list">
+    List all current coins
+  </Card>
+</CardGroup>
+
+## Notes
+
+- Check the changelog regularly if you store coin IDs in your database
+- Old IDs may redirect to new ones temporarily, but updates are recommended
+- Some changes represent coin rebrands or chain migrations
+- The changelog includes both active and deprecated coins

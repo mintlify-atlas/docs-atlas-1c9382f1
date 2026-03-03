@@ -1,0 +1,113 @@
+---
+title: 'coins'
+description: 'List all available coins'
+---
+
+## Overview
+
+Returns a list of all coins available on CoinPaprika with basic information including ID, name, symbol, rank, and status.
+
+## Usage
+
+```bash
+coinpaprika-cli coins [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="--limit" type="number" default="100">
+  Maximum number of results to return
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### List first 10 coins
+
+```bash
+coinpaprika-cli coins --limit 10
+```
+
+### List coins in JSON format
+
+```bash
+coinpaprika-cli coins --output json
+```
+
+### List first 50 coins with raw JSON
+
+```bash
+coinpaprika-cli coins --limit 50 --output json --raw
+```
+
+## Example Output
+
+### Table Format
+
+```
+┌──────┬───────────────┬────────────────────┬────────┬────────┬────────┬──────┐
+│ Rank │ ID            │ Name               │ Symbol │ Active │ New    │ Type │
+├──────┼───────────────┼────────────────────┼────────┼────────┼────────┼──────┤
+│ 1    │ btc-bitcoin   │ Bitcoin            │ BTC    │ ✓      │        │ coin │
+│ 2    │ eth-ethereum  │ Ethereum           │ ETH    │ ✓      │        │ coin │
+│ 3    │ usdt-tether   │ Tether             │ USDT   │ ✓      │        │ token│
+│ 4    │ bnb-binance   │ Binance Coin       │ BNB    │ ✓      │        │ coin │
+│ 5    │ sol-solana    │ Solana             │ SOL    │ ✓      │        │ coin │
+└──────┴───────────────┴────────────────────┴────────┴────────┴────────┴──────┘
+```
+
+### JSON Format
+
+```json
+[
+  {
+    "id": "btc-bitcoin",
+    "name": "Bitcoin",
+    "symbol": "BTC",
+    "rank": 1,
+    "is_new": false,
+    "is_active": true,
+    "type": "coin"
+  },
+  {
+    "id": "eth-ethereum",
+    "name": "Ethereum",
+    "symbol": "ETH",
+    "rank": 2,
+    "is_new": false,
+    "is_active": true,
+    "type": "coin"
+  }
+]
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique coin identifier (e.g., `btc-bitcoin`) |
+| `name` | string | Coin name |
+| `symbol` | string | Coin symbol/ticker |
+| `rank` | integer | Market cap rank |
+| `is_new` | boolean | Whether the coin is newly listed |
+| `is_active` | boolean | Whether the coin is currently active |
+| `type` | string | Type of asset (`coin` or `token`) |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/coins
+```
+
+## Related Commands
+
+- [coin-detail](/api/coin-detail) - Get detailed coin information
+- [tickers-list](/api/tickers-list) - List all tickers with price data
+- [coin-markets](/api/coin-markets) - Get markets for a coin

@@ -1,0 +1,421 @@
+---
+title: Configuration Commands
+description: Manage CoinPaprika CLI configuration and API keys
+---
+
+## Commands Overview
+
+Configuration commands help you manage CLI settings and API keys:
+
+- `config show` - Display current configuration
+- `config set-key` - Save your API key
+- `config reset` - Delete configuration file
+
+## Show Configuration
+
+```bash
+coinpaprika-cli config show
+```
+
+Display current CLI configuration including API key status and source.
+
+### Examples
+
+<CodeGroup>
+```bash View Configuration
+coinpaprika-cli config show
+```
+
+```bash JSON Output
+coinpaprika-cli config show --output json
+```
+</CodeGroup>
+
+### Output Fields
+
+**Table format shows:**
+- Config file path
+- API key status (masked)
+- Key source (config file, env var, or not set)
+- API endpoint URL
+
+**JSON format includes:**
+- `config_file` - Path to config file
+- `api_key` - API key (masked, e.g., `sk-abc...xyz`)
+- `key_source` - Where the key comes from
+- `coinpaprika_url` - API endpoint being used
+
+### Example Output
+
+```
+Configuration
+  Config file: /home/user/.config/coinpaprika-cli/config.json
+  API key:     sk-abc...xyz (from config file)
+  API URL:     https://api-pro.coinpaprika.com/v1
+```
+
+## Set API Key
+
+```bash
+coinpaprika-cli config set-key <KEY>
+```
+
+Save your CoinPaprika API key to the configuration file.
+
+### Arguments
+
+- `<KEY>` - Your CoinPaprika API key
+
+### Examples
+
+<CodeGroup>
+```bash Save API Key
+coinpaprika-cli config set-key sk-your-api-key-here
+```
+
+```bash Verify Saved
+coinpaprika-cli config set-key sk-abc123... && coinpaprika-cli config show
+```
+</CodeGroup>
+
+### What It Does
+
+1. Creates config directory if needed: `~/.config/coinpaprika-cli/`
+2. Saves key to: `~/.config/coinpaprika-cli/config.json`
+3. Displays masked key for confirmation
+
+### Example Output
+
+```
+API key saved to /home/user/.config/coinpaprika-cli/config.json
+Key: sk-abc...xyz
+```
+
+## Reset Configuration
+
+```bash
+coinpaprika-cli config reset
+```
+
+Delete the configuration file, removing your saved API key.
+
+### Examples
+
+<CodeGroup>
+```bash Delete Config
+coinpaprika-cli config reset
+```
+</CodeGroup>
+
+### What It Does
+
+- Deletes `~/.config/coinpaprika-cli/config.json`
+- Removes saved API key
+- Does not affect environment variables
+
+<Note>
+After resetting, the CLI will use environment variables or work without an API key (free tier).
+</Note>
+
+## API Key Priority
+
+When multiple API key sources exist, the CLI uses this priority:
+
+1. **Command-line flag** (`--api-key`)
+   ```bash
+   coinpaprika-cli ticker btc-bitcoin --api-key sk-your-key
+   ```
+
+2. **Environment variable** (`COINPAPRIKA_API_KEY`)
+   ```bash
+   export COINPAPRIKA_API_KEY="sk-your-key"
+   coinpaprika-cli ticker btc-bitcoin
+   ```
+
+3. **Config file** (`~/.config/coinpaprika-cli/config.json`)
+   ```bash
+   coinpaprika-cli config set-key sk-your-key
+   coinpaprika-cli ticker btc-bitcoin
+   ```
+
+4. **No API key** (free tier)
+   ```bash
+   coinpaprika-cli ticker btc-bitcoin
+   ```
+
+## Configuration Methods
+
+### Method 1: Interactive Setup (Recommended)
+
+```bash
+coinpaprika-cli onboard
+```
+
+Use the interactive setup wizard:
+- Validates your API key
+- Shows your plan details
+- Saves configuration automatically
+
+### Method 2: Direct Command
+
+```bash
+coinpaprika-cli config set-key sk-your-api-key-here
+```
+
+Quickly save your key without prompts.
+
+### Method 3: Environment Variable
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+export COINPAPRIKA_API_KEY="sk-your-api-key-here"
+```
+
+Useful for:
+- CI/CD pipelines
+- Docker containers
+- Multiple environments
+
+### Method 4: Per-Command Override
+
+```bash
+coinpaprika-cli ticker btc-bitcoin --api-key sk-temp-key
+```
+
+Useful for:
+- Testing different API keys
+- One-off commands
+- Scripts with embedded keys
+
+## Configuration File
+
+### Location
+
+- **Linux/Mac:** `~/.config/coinpaprika-cli/config.json`
+- **Windows:** `%APPDATA%\coinpaprika-cli\config.json`
+
+### Format
+
+```json
+{
+  "api_key": "sk-your-api-key-here"
+}
+```
+
+### Permissions
+
+The config file should have restricted permissions:
+
+```bash
+# Set secure permissions (Linux/Mac)
+chmod 600 ~/.config/coinpaprika-cli/config.json
+```
+
+## Practical Examples
+
+### Initial Setup
+
+```bash
+# Use interactive wizard
+coinpaprika-cli onboard
+
+# Or set directly
+coinpaprika-cli config set-key sk-your-api-key
+
+# Verify
+coinpaprika-cli config show
+```
+
+### Check Current Setup
+
+```bash
+# See configuration
+coinpaprika-cli config show
+
+# Test API key
+coinpaprika-cli key-info
+```
+
+### Switch Between Keys
+
+```bash
+# Save primary key
+coinpaprika-cli config set-key sk-primary-key
+
+# Use secondary key for one command
+coinpaprika-cli ticker btc-bitcoin --api-key sk-secondary-key
+
+# Primary key still saved
+coinpaprika-cli config show
+```
+
+### Remove API Key
+
+```bash
+# Delete config
+coinpaprika-cli config reset
+
+# Verify removal
+coinpaprika-cli config show
+# Output: API key: not set
+```
+
+### Environment Variable Setup
+
+```bash
+# Set for current session
+export COINPAPRIKA_API_KEY="sk-your-key"
+
+# Make permanent (add to ~/.bashrc)
+echo 'export COINPAPRIKA_API_KEY="sk-your-key"' >> ~/.bashrc
+source ~/.bashrc
+
+# Verify
+coinpaprika-cli config show
+# Output: API key: sk-... (from env)
+```
+
+### Docker/CI Configuration
+
+```dockerfile
+# Dockerfile
+ENV COINPAPRIKA_API_KEY="sk-your-key"
+```
+
+```yaml
+# GitHub Actions
+env:
+  COINPAPRIKA_API_KEY: ${{ secrets.COINPAPRIKA_API_KEY }}
+```
+
+### Verify API Key Works
+
+```bash
+# Set key
+coinpaprika-cli config set-key sk-your-key
+
+# Test with paid endpoint
+coinpaprika-cli key-info
+
+# Or test any command
+coinpaprika-cli ticker btc-bitcoin
+```
+
+## Getting an API Key
+
+### Free Tier (No Key Needed)
+
+The CLI works without an API key:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin
+```
+
+**Free tier includes:**
+- 20,000 calls/month
+- All standard endpoints
+- Updates every ~10 minutes
+
+### Paid Plans
+
+1. Visit [coinpaprika.com/api/pricing](https://coinpaprika.com/api/pricing)
+2. Choose a plan (Starter, Pro, Business, Enterprise)
+3. Get your API key from dashboard
+4. Configure CLI:
+
+```bash
+coinpaprika-cli onboard --key sk-your-api-key
+```
+
+**Paid plans include:**
+- Higher rate limits
+- Historical data access
+- 5-minute intervals
+- Premium endpoints
+
+Run `coinpaprika-cli plans` for comparison.
+
+## Troubleshooting
+
+### Key Not Working
+
+```bash
+# Check configuration
+coinpaprika-cli config show
+
+# Test key directly
+coinpaprika-cli key-info
+
+# Try with explicit key
+coinpaprika-cli ticker btc-bitcoin --api-key sk-your-key
+```
+
+### Config File Issues
+
+```bash
+# Check if file exists
+ls -la ~/.config/coinpaprika-cli/
+
+# View contents (be careful with API key)
+cat ~/.config/coinpaprika-cli/config.json
+
+# Reset and reconfigure
+coinpaprika-cli config reset
+coinpaprika-cli config set-key sk-your-key
+```
+
+### Permission Denied
+
+```bash
+# Fix directory permissions
+chmod 755 ~/.config/coinpaprika-cli/
+
+# Fix file permissions
+chmod 600 ~/.config/coinpaprika-cli/config.json
+```
+
+### Multiple Environments
+
+```bash
+# Use different keys per environment
+export COINPAPRIKA_API_KEY="sk-dev-key"    # Development
+export COINPAPRIKA_API_KEY="sk-prod-key"   # Production
+
+# Or use per-command override
+alias coinpaprika-dev='coinpaprika-cli --api-key sk-dev-key'
+alias coinpaprika-prod='coinpaprika-cli --api-key sk-prod-key'
+```
+
+## Security Best Practices
+
+### Protect Your API Key
+
+1. **Never commit to git:**
+   ```bash
+   # Add to .gitignore
+   echo 'config.json' >> .gitignore
+   echo '.env' >> .gitignore
+   ```
+
+2. **Use environment variables in CI/CD:**
+   ```bash
+   # GitHub Actions, GitLab CI, etc.
+   COINPAPRIKA_API_KEY: ${{ secrets.COINPAPRIKA_API_KEY }}
+   ```
+
+3. **Restrict file permissions:**
+   ```bash
+   chmod 600 ~/.config/coinpaprika-cli/config.json
+   ```
+
+4. **Rotate keys regularly:**
+   - Generate new key in CoinPaprika dashboard
+   - Update configuration
+   - Invalidate old key
+
+## Related Commands
+
+- [`onboard`](/commands/utilities#onboard) - Interactive setup wizard
+- [`plans`](/commands/utilities#plans) - View pricing plans
+- [`key-info`](/commands/utilities#key-info) - Check API key details
+- [`status`](/commands/utilities#status) - Verify API connectivity

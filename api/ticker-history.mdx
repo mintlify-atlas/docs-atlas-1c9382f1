@@ -1,0 +1,161 @@
+---
+title: 'ticker-history'
+description: 'Get historical ticker data for a coin'
+---
+
+<Warning>
+  This is a **PAID feature** requiring a Starter plan or higher. [View pricing](https://coinpaprika.com/api)
+</Warning>
+
+## Overview
+
+Returns historical price, volume, and market cap data for a specific cryptocurrency at specified intervals. Useful for charting and analysis.
+
+## Usage
+
+```bash
+coinpaprika-cli ticker-history <COIN_ID> --start <START_DATE> [OPTIONS]
+```
+
+## Parameters
+
+<ParamField path="coin_id" type="string" required>
+  Coin ID in format `symbol-name` (e.g., `btc-bitcoin`)
+</ParamField>
+
+<ParamField path="--start" type="string" required>
+  Start date in ISO format (e.g., `2024-01-01`, `2024-01-01T00:00:00Z`)
+</ParamField>
+
+<ParamField path="--end" type="string">
+  End date in ISO format (defaults to current date if not specified)
+</ParamField>
+
+<ParamField path="--interval" type="string" default="24h">
+  Time interval between data points: `5m`, `10m`, `15m`, `30m`, `1h`, `6h`, `12h`, `24h`, `7d`, `14d`, `30d`, `90d`, `365d`
+</ParamField>
+
+<ParamField path="--limit" type="number" default="50">
+  Maximum number of data points to return
+</ParamField>
+
+<ParamField path="--quote" type="string" default="usd">
+  Quote currency (e.g., `usd`, `btc`, `eth`)
+</ParamField>
+
+<ParamField path="--output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField path="--raw" type="boolean" default="false">
+  Show raw JSON response without wrapper metadata
+</ParamField>
+
+## Examples
+
+### Get Bitcoin price history for January 2024
+
+```bash
+coinpaprika-cli ticker-history btc-bitcoin --start 2024-01-01 --end 2024-01-31
+```
+
+### Get Ethereum hourly data for last 30 hours
+
+```bash
+coinpaprika-cli ticker-history eth-ethereum --start 2024-01-01 --interval 1h --limit 30
+```
+
+### Get Solana weekly data for 3 months
+
+```bash
+coinpaprika-cli ticker-history sol-solana --start 2024-01-01 --interval 7d --limit 12
+```
+
+### Get historical data in JSON format
+
+```bash
+coinpaprika-cli ticker-history btc-bitcoin --start 2024-01-01 --output json
+```
+
+## Example Output
+
+### Table Format
+
+```
+┌─────────────────────┬──────────────┬─────────────────┬─────────────────┐
+│ Timestamp           │ Price (USD)  │ Volume (24h)    │ Market Cap      │
+├─────────────────────┼──────────────┼─────────────────┼─────────────────┤
+│ 2024-01-01 00:00:00 │ $42,156.78   │ $18.2B          │ $825.3B         │
+│ 2024-01-02 00:00:00 │ $43,234.56   │ $19.8B          │ $846.1B         │
+│ 2024-01-03 00:00:00 │ $44,567.89   │ $22.4B          │ $872.4B         │
+│ 2024-01-04 00:00:00 │ $43,890.12   │ $20.1B          │ $859.2B         │
+│ 2024-01-05 00:00:00 │ $45,123.45   │ $24.6B          │ $883.5B         │
+└─────────────────────┴──────────────┴─────────────────┴─────────────────┘
+```
+
+### JSON Format
+
+```json
+[
+  {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "price": 42156.78,
+    "volume_24h": 18200000000,
+    "market_cap": 825300000000
+  },
+  {
+    "timestamp": "2024-01-02T00:00:00Z",
+    "price": 43234.56,
+    "volume_24h": 19800000000,
+    "market_cap": 846100000000
+  },
+  {
+    "timestamp": "2024-01-03T00:00:00Z",
+    "price": 44567.89,
+    "volume_24h": 22400000000,
+    "market_cap": 872400000000
+  }
+]
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | string | Data point timestamp (ISO 8601 format) |
+| `price` | number | Price at this timestamp in quote currency |
+| `volume_24h` | number | 24-hour trading volume |
+| `market_cap` | number | Market capitalization |
+
+## API Endpoint
+
+```
+GET https://api.coinpaprika.com/v1/tickers/{coin_id}/historical
+  ?start={start}
+  &end={end}
+  &interval={interval}
+  &limit={limit}
+  &quote={quote}
+```
+
+## Rate Limits
+
+<Warning>
+  This endpoint requires authentication and is subject to plan-specific rate limits:
+  - **Starter**: 25,000 requests/month
+  - **Pro**: 150,000 requests/month
+  - **Business**: 500,000 requests/month
+</Warning>
+
+## Common Use Cases
+
+- Creating price charts and visualizations
+- Backtesting trading strategies
+- Historical analysis and research
+- Building custom analytics dashboards
+
+## Related Commands
+
+- [ticker-detail](/api/ticker-detail) - Get current ticker data
+- [ohlcv-historical](/api/ohlcv-historical) - Get OHLCV candle data
+- [tickers-list](/api/tickers-list) - List all tickers

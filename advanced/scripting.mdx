@@ -1,0 +1,406 @@
+---
+title: Scripting
+description: Using CoinPaprika CLI in scripts with JSON output and piping
+---
+
+## Overview
+
+The CoinPaprika CLI is designed for automation and scripting. This guide covers using JSON output, the `--raw` flag, piping, and scripting patterns in Bash and Python.
+
+## JSON Output
+
+### Basic JSON Output
+
+Use `--output json` to get structured JSON responses:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin --output json
+```
+
+**Default output** (with metadata wrapper):
+
+```json
+{
+  "data": {
+    "id": "btc-bitcoin",
+    "name": "Bitcoin",
+    "symbol": "BTC",
+    "quotes": {
+      "USD": {
+        "price": 43250.5,
+        "volume_24h": 18500000000,
+        "market_cap": 845000000000,
+        "percent_change_24h": 2.34
+      }
+    }
+  },
+  "_meta": {
+    "source": "CoinPaprika",
+    "url": "https://coinpaprika.com/coin/btc-bitcoin",
+    "api_docs": "https://api.coinpaprika.com",
+    "attribution": "Powered by CoinPaprika · Free crypto market data",
+    "timestamp": "2026-03-03T12:00:00Z"
+  }
+}
+```
+
+### Raw JSON Output
+
+Use `--raw` to get **only the data** without the metadata wrapper:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin --output json --raw
+```
+
+**Raw output** (data only):
+
+```json
+{
+  "id": "btc-bitcoin",
+  "name": "Bitcoin",
+  "symbol": "BTC",
+  "quotes": {
+    "USD": {
+      "price": 43250.5,
+      "volume_24h": 18500000000,
+      "market_cap": 845000000000,
+      "percent_change_24h": 2.34
+    }
+  }
+}
+```
+
+**When to use `--raw`**:
+- Piping to `jq` or other JSON processors
+- Storing data in databases
+- Feeding data to other programs
+- When you don't need attribution metadata
+
+**Source**: The `--raw` flag is defined in src/main.rs:38-39 and controls whether `print_json_wrapped` adds the metadata wrapper (src/output/mod.rs:111-119).
+
+## Piping with jq
+
+### Extract Specific Fields
+
+```bash
+# Get just the Bitcoin price
+coinpaprika-cli ticker btc-bitcoin --output json --raw | jq -r '.quotes.USD.price'
+# Output: 43250.5
+
+# Get name and price
+coinpaprika-cli ticker btc-bitcoin --output json --raw | jq '{name, price: .quotes.USD.price}'
+# Output: {"name": "Bitcoin", "price": 43250.5}
+```
+
+### Filter Arrays
+
+```bash
+# Get top 5 coins by market cap
+coinpaprika-cli tickers --limit 100 --output json --raw | \
+  jq -r '.[:5] | .[] | "\(.rank). \(.name) - $\(.quotes.USD.price)"'
+
+# Filter coins with 24h change > 5%
+coinpaprika-cli tickers --limit 50 --output json --raw | \
+  jq '.[] | select(.quotes.USD.percent_change_24h > 5) | {name, change: .quotes.USD.percent_change_24h}'
+```
+
+### Format as CSV
+
+```bash
+# Convert ticker data to CSV
+coinpaprika-cli tickers --limit 10 --output json --raw | \
+  jq -r '(.[0] | keys_unsorted) as $keys | $keys, (.[] | [.[$keys[]]] | @csv)'
+```
+
+## Bash Scripting
+
+### Price Alert Script
+
+```bash
+#!/bin/bash
+# alert_btc_price.sh - Send alert if BTC price exceeds threshold
+
+THRESHOLD=50000
+PRICE=$(coinpaprika-cli ticker btc-bitcoin --output json --raw | jq -r '.quotes.USD.price')
+
+if (( $(echo "$PRICE > $THRESHOLD" | bc -l) )); then
+  echo "ALERT: Bitcoin price is $PRICE (threshold: $THRESHOLD)"
+  # Send notification (e.g., via email, Slack, etc.)
+else
+  echo "Bitcoin price: $PRICE (below threshold)"
+fi
+```
+
+### Multi-Coin Price Tracker
+
+```bash
+#!/bin/bash
+# track_prices.sh - Track multiple coins and save to file
+
+OUTPUT_FILE="crypto_prices_$(date +%Y%m%d_%H%M%S).json"
+COINS=("btc-bitcoin" "eth-ethereum" "usdt-tether" "bnb-binance-coin")
+
+echo '{"timestamp": "'$(date -Iseconds)'", "prices": [' > "$OUTPUT_FILE"
+
+for i in "${!COINS[@]}"; do
+  COIN="${COINS[$i]}"
+  DATA=$(coinpaprika-cli ticker "$COIN" --output json --raw)
+  echo "$DATA" >> "$OUTPUT_FILE"
+  
+  # Add comma except for last item
+  if [ $i -lt $((${#COINS[@]} - 1)) ]; then
+    echo "," >> "$OUTPUT_FILE"
+  fi
+done
+
+echo ']}' >> "$OUTPUT_FILE"
+echo "Saved prices to $OUTPUT_FILE"
+```
+
+### Market Summary Report
+
+```bash
+#!/bin/bash
+# market_report.sh - Generate daily market summary
+
+GLOBAL=$(coinpaprika-cli global --output json --raw)
+TOP_10=$(coinpaprika-cli tickers --limit 10 --output json --raw)
+
+MARKET_CAP=$(echo "$GLOBAL" | jq -r '.market_cap_usd')
+BTC_DOMINANCE=$(echo "$GLOBAL" | jq -r '.bitcoin_dominance_percentage')
+VOLUME_24H=$(echo "$GLOBAL" | jq -r '.volume_24h_usd')
+
+echo "=== Crypto Market Summary ==="
+echo "Date: $(date)"
+echo "Total Market Cap: \$$MARKET_CAP"
+echo "BTC Dominance: $BTC_DOMINANCE%"
+echo "24h Volume: \$$VOLUME_24H"
+echo ""
+echo "Top 10 Coins:"
+echo "$TOP_10" | jq -r '.[] | "\(.rank). \(.name) (\(.symbol)) - \u0024\(.quotes.USD.price)"'
+```
+
+## Python Scripting
+
+### Basic Price Fetcher
+
+```python
+#!/usr/bin/env python3
+# fetch_price.py - Fetch cryptocurrency price
+
+import json
+import subprocess
+import sys
+
+def get_coin_price(coin_id, currency="USD"):
+    """Get current price for a cryptocurrency."""
+    result = subprocess.run(
+        ["coinpaprika-cli", "ticker", coin_id, "--output", "json", "--raw"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    data = json.loads(result.stdout)
+    return data["quotes"][currency]["price"]
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python fetch_price.py <coin-id>")
+        sys.exit(1)
+    
+    coin_id = sys.argv[1]
+    try:
+        price = get_coin_price(coin_id)
+        print(f"{coin_id}: ${price:,.2f}")
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+```
+
+### Portfolio Tracker
+
+```python
+#!/usr/bin/env python3
+# portfolio.py - Track cryptocurrency portfolio value
+
+import json
+import subprocess
+from decimal import Decimal
+
+# Define your portfolio (coin_id: amount)
+PORTFOLIO = {
+    "btc-bitcoin": Decimal("0.5"),
+    "eth-ethereum": Decimal("5.0"),
+    "ada-cardano": Decimal("1000.0"),
+}
+
+def get_ticker(coin_id):
+    """Fetch ticker data for a coin."""
+    result = subprocess.run(
+        ["coinpaprika-cli", "ticker", coin_id, "--output", "json", "--raw"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    return json.loads(result.stdout)
+
+def calculate_portfolio_value():
+    """Calculate total portfolio value."""
+    total_value = Decimal("0")
+    print("\n=== Portfolio Summary ===")
+    print(f"{'Coin':<20} {'Amount':<15} {'Price':<15} {'Value':<15}")
+    print("-" * 65)
+    
+    for coin_id, amount in PORTFOLIO.items():
+        ticker = get_ticker(coin_id)
+        price = Decimal(str(ticker["quotes"]["USD"]["price"]))
+        value = amount * price
+        total_value += value
+        
+        print(f"{ticker['name']:<20} {amount:<15.4f} ${price:<14.2f} ${value:<14.2f}")
+    
+    print("-" * 65)
+    print(f"{'TOTAL':<20} {'':15} {'':15} ${total_value:<14.2f}")
+    print()
+
+if __name__ == "__main__":
+    try:
+        calculate_portfolio_value()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        exit(1)
+```
+
+### Price Change Monitor
+
+```python
+#!/usr/bin/env python3
+# monitor.py - Monitor price changes and send alerts
+
+import json
+import subprocess
+import time
+from datetime import datetime
+
+MONITOR_COINS = ["btc-bitcoin", "eth-ethereum"]
+CHECK_INTERVAL = 300  # 5 minutes
+ALERT_THRESHOLD = 5.0  # Alert if change > 5%
+
+def get_price_change(coin_id):
+    """Get 24h price change percentage."""
+    result = subprocess.run(
+        ["coinpaprika-cli", "ticker", coin_id, "--output", "json", "--raw"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    data = json.loads(result.stdout)
+    return {
+        "name": data["name"],
+        "price": data["quotes"]["USD"]["price"],
+        "change_24h": data["quotes"]["USD"]["percent_change_24h"]
+    }
+
+def check_alerts():
+    """Check for significant price changes."""
+    print(f"[{datetime.now()}] Checking prices...")
+    
+    for coin_id in MONITOR_COINS:
+        try:
+            data = get_price_change(coin_id)
+            change = abs(data["change_24h"])
+            
+            if change > ALERT_THRESHOLD:
+                print(f"⚠️  ALERT: {data['name']} changed {data['change_24h']:.2f}% (${data['price']:.2f})")
+            else:
+                print(f"✓ {data['name']}: {data['change_24h']:.2f}% (${data['price']:.2f})")
+        except Exception as e:
+            print(f"Error checking {coin_id}: {e}")
+
+if __name__ == "__main__":
+    print(f"Starting price monitor (threshold: {ALERT_THRESHOLD}%, interval: {CHECK_INTERVAL}s)")
+    
+    while True:
+        check_alerts()
+        time.sleep(CHECK_INTERVAL)
+```
+
+## Error Handling in Scripts
+
+### Bash Error Handling
+
+```bash
+#!/bin/bash
+set -e  # Exit on error
+set -o pipefail  # Catch errors in pipes
+
+# Check if command exists
+if ! command -v coinpaprika-cli &> /dev/null; then
+  echo "Error: coinpaprika-cli not found"
+  exit 1
+fi
+
+# Capture and handle errors
+if ! OUTPUT=$(coinpaprika-cli ticker btc-bitcoin --output json --raw 2>&1); then
+  echo "Error fetching data: $OUTPUT"
+  exit 1
+fi
+
+echo "Success: $OUTPUT"
+```
+
+### Python Error Handling
+
+```python
+import subprocess
+import json
+import sys
+
+try:
+    result = subprocess.run(
+        ["coinpaprika-cli", "ticker", "btc-bitcoin", "--output", "json", "--raw"],
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30  # 30 second timeout
+    )
+    data = json.loads(result.stdout)
+    print(f"Price: ${data['quotes']['USD']['price']}")
+except subprocess.CalledProcessError as e:
+    print(f"CLI error: {e.stderr}", file=sys.stderr)
+    sys.exit(1)
+except subprocess.TimeoutExpired:
+    print("Error: Request timed out", file=sys.stderr)
+    sys.exit(1)
+except json.JSONDecodeError as e:
+    print(f"JSON parse error: {e}", file=sys.stderr)
+    sys.exit(1)
+except FileNotFoundError:
+    print("Error: coinpaprika-cli not found in PATH", file=sys.stderr)
+    sys.exit(1)
+```
+
+## Performance Tips
+
+1. **Use `--raw` for scripting** — it reduces JSON parsing overhead and makes piping easier
+2. **Cache responses** — avoid hitting the API repeatedly for the same data
+3. **Use `--limit`** — fetch only the data you need
+4. **Batch requests** — if possible, use endpoints that return multiple items (like `tickers`) instead of looping over individual requests
+5. **Respect rate limits** — free tier allows 20,000 calls/month; add delays between requests in loops
+
+## Exit Codes
+
+The CLI returns standard exit codes:
+
+- `0` — Success
+- `1` — Error (API error, invalid arguments, etc.)
+
+Use these in scripts for error handling:
+
+```bash
+if coinpaprika-cli ticker btc-bitcoin --output json --raw > btc.json; then
+  echo "Success"
+else
+  echo "Failed with exit code $?"
+fi
+```

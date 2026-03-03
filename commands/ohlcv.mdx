@@ -1,0 +1,296 @@
+---
+title: OHLCV Commands
+description: Get OHLCV (Open, High, Low, Close, Volume) candlestick data for technical analysis
+---
+
+## Commands Overview
+
+OHLCV commands provide candlestick data for charting and technical analysis:
+
+- `ohlcv` - Historical OHLCV data (paid feature)
+- `ohlcv-latest` - Latest full day OHLCV
+- `ohlcv-today` - Today's incomplete OHLCV
+
+## Historical OHLCV
+
+<Note>
+**PAID FEATURE:** Requires Starter plan or higher. See [pricing plans](https://coinpaprika.com/api/pricing).
+</Note>
+
+```bash
+coinpaprika-cli ohlcv <COIN_ID> --start <DATE> [OPTIONS]
+```
+
+Get historical OHLCV (candlestick) data with various time intervals.
+
+### Arguments
+
+- `<COIN_ID>` - Coin identifier (e.g., `btc-bitcoin`)
+
+### Options
+
+- `--start <DATE>` - Start date in ISO format (e.g., `2024-01-01`) **[Required]**
+- `--end <DATE>` - End date in ISO format (optional)
+- `--interval <INTERVAL>` - Time interval (default: `24h`)
+- `--limit <NUMBER>` - Maximum number of results (default: `50`)
+- `--quote <CURRENCY>` - Quote currency (default: `usd`)
+
+### Available Intervals
+
+- `5m` - 5 minutes (requires paid plan)
+- `15m` - 15 minutes (requires paid plan)
+- `30m` - 30 minutes (requires paid plan)
+- `1h` - 1 hour (requires paid plan)
+- `6h` - 6 hours (requires paid plan)
+- `12h` - 12 hours (requires paid plan)
+- `24h` - 24 hours (1 day)
+
+### Examples
+
+<CodeGroup>
+```bash Last 30 Days (Daily)
+coinpaprika-cli ohlcv btc-bitcoin \
+  --start 2024-01-01 \
+  --interval 24h \
+  --limit 30
+```
+
+```bash Hourly Data (Paid)
+coinpaprika-cli ohlcv eth-ethereum \
+  --start 2024-03-01 \
+  --end 2024-03-02 \
+  --interval 1h
+```
+
+```bash 5-Minute Candles (Paid)
+coinpaprika-cli ohlcv btc-bitcoin \
+  --start 2024-03-03 \
+  --interval 5m \
+  --limit 288
+```
+
+```bash JSON Output
+coinpaprika-cli ohlcv btc-bitcoin \
+  --start 2024-01-01 \
+  --limit 7 \
+  --output json
+```
+</CodeGroup>
+
+### Response Fields
+
+- `time_open` - Candle open time (ISO 8601)
+- `time_close` - Candle close time (ISO 8601)
+- `open` - Opening price
+- `high` - Highest price in period
+- `low` - Lowest price in period
+- `close` - Closing price
+- `volume` - Trading volume in period
+- `market_cap` - Market cap at close
+
+## Latest OHLCV
+
+```bash
+coinpaprika-cli ohlcv-latest <COIN_ID> [OPTIONS]
+```
+
+Get OHLCV data for the last full day (yesterday if today is incomplete).
+
+### Arguments
+
+- `<COIN_ID>` - Coin identifier
+
+### Options
+
+- `--quote <CURRENCY>` - Quote currency (default: `usd`)
+
+### Examples
+
+<CodeGroup>
+```bash Bitcoin Latest Day
+coinpaprika-cli ohlcv-latest btc-bitcoin
+```
+
+```bash Ethereum in BTC
+coinpaprika-cli ohlcv-latest eth-ethereum --quote btc
+```
+
+```bash JSON Format
+coinpaprika-cli ohlcv-latest btc-bitcoin --output json
+```
+</CodeGroup>
+
+### Use Case
+
+Get the most recent complete 24-hour candle without specifying dates:
+
+```bash
+# Quick daily summary
+coinpaprika-cli ohlcv-latest btc-bitcoin
+```
+
+## Today's OHLCV
+
+```bash
+coinpaprika-cli ohlcv-today <COIN_ID> [OPTIONS]
+```
+
+Get OHLCV data for today (current incomplete day).
+
+### Arguments
+
+- `<COIN_ID>` - Coin identifier
+
+### Options
+
+- `--quote <CURRENCY>` - Quote currency (default: `usd`)
+
+### Examples
+
+<CodeGroup>
+```bash Bitcoin Today
+coinpaprika-cli ohlcv-today btc-bitcoin
+```
+
+```bash Ethereum Today
+coinpaprika-cli ohlcv-today eth-ethereum
+```
+
+```bash JSON Format
+coinpaprika-cli ohlcv-today btc-bitcoin --output json
+```
+</CodeGroup>
+
+### Use Case
+
+Track intraday performance:
+
+```bash
+# Monitor today's range
+coinpaprika-cli ohlcv-today btc-bitcoin
+```
+
+<Note>
+The "today" candle is incomplete and updates throughout the day.
+</Note>
+
+## Practical Examples
+
+### Build a Price Chart
+
+```bash
+# Get 90 days of daily candles
+coinpaprika-cli ohlcv btc-bitcoin \
+  --start $(date -d '90 days ago' +%Y-%m-%d) \
+  --interval 24h \
+  --limit 90 \
+  --output json --raw > btc-ohlcv-90d.json
+```
+
+### Calculate Daily Returns
+
+```bash
+# Get week of data and calculate returns
+coinpaprika-cli ohlcv btc-bitcoin \
+  --start $(date -d '7 days ago' +%Y-%m-%d) \
+  --interval 24h \
+  --output json --raw | \
+  jq '.[] | {date: .time_close, return: ((.close - .open) / .open * 100)}'
+```
+
+### Find High/Low Range
+
+```bash
+# Get 24-hour high and low
+data=$(coinpaprika-cli ohlcv-latest btc-bitcoin --output json --raw)
+echo "High: $(echo $data | jq -r '.[0].high')"
+echo "Low: $(echo $data | jq -r '.[0].low')"
+```
+
+### Intraday Trading Data
+
+```bash
+# 15-minute candles for today (paid plan)
+coinpaprika-cli ohlcv btc-bitcoin \
+  --start $(date +%Y-%m-%d) \
+  --interval 15m \
+  --limit 100
+```
+
+### Volume Analysis
+
+```bash
+# Compare volumes across days
+coinpaprika-cli ohlcv btc-bitcoin \
+  --start $(date -d '30 days ago' +%Y-%m-%d) \
+  --limit 30 \
+  --output json --raw | \
+  jq '.[] | {date: .time_close, volume: .volume}'
+```
+
+## Supported Quote Currencies
+
+- `usd` - US Dollar (most common)
+- `btc` - Bitcoin
+- `eth` - Ethereum
+- Other major cryptocurrencies
+
+```bash
+# Get Ethereum price in Bitcoin
+coinpaprika-cli ohlcv eth-ethereum --start 2024-01-01 --quote btc
+```
+
+## Data Availability
+
+### Free Tier
+- **Daily OHLCV:** Up to 1 year back
+- **Hourly OHLCV:** Last 24 hours only
+- **Intervals:** 24h only
+- **Ticker History:** Not available
+
+### Paid Plans (Starter+)
+- **Full historical data:** All available history
+- **5-minute intervals:** Detailed intraday data
+- **All intervals:** 5m, 15m, 30m, 1h, 6h, 12h, 24h
+- **Ticker history:** Included
+
+Run `coinpaprika-cli plans` for details.
+
+## Comparison: OHLCV vs Ticker History
+
+| Feature | OHLCV | Ticker History |
+|---------|-------|----------------|
+| **Data Type** | Candlestick (OHLCV) | Price snapshots |
+| **Best For** | Charting, technical analysis | Time-series analysis |
+| **Fields** | Open, high, low, close, volume | Price, volume, market cap |
+| **Intervals** | 5m to 24h | 5m to 30d |
+| **Free Tier** | Latest/today only | Not available |
+| **Paid Plans** | Full history | Full history |
+
+### When to Use Each
+
+**Use OHLCV when:**
+- Building price charts
+- Performing technical analysis
+- Need high/low ranges
+- Calculating candlestick patterns
+
+**Use Ticker History when:**
+- Need exact timestamps
+- Tracking market cap changes
+- Comparing multiple metrics
+- Building time-series models
+
+## API Details
+
+- **Historical OHLCV:** `/coins/{coin_id}/ohlcv/historical` (paid)
+- **Latest OHLCV:** `/coins/{coin_id}/ohlcv/latest`
+- **Today OHLCV:** `/coins/{coin_id}/ohlcv/today`
+- **Method:** GET
+- **Rate Limit:** Counts toward your monthly limit
+
+## Related Commands
+
+- [`ticker-history`](/commands/tickers#historical-ticker-data) - Historical price snapshots
+- [`ticker`](/commands/tickers#get-ticker) - Real-time price data
+- [`plans`](/commands/utilities#plans) - View pricing plans

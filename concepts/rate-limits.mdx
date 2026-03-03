@@ -1,0 +1,392 @@
+---
+title: 'Rate Limits'
+description: 'Understanding CoinPaprika API rate limits, handling errors, and upgrading plans'
+---
+
+## Overview
+
+The CoinPaprika API has different rate limits depending on your plan tier. Understanding these limits helps you avoid errors and choose the right plan for your needs.
+
+## Rate Limit Tiers
+
+<Tabs>
+  <Tab title="Free Tier">
+    The free tier provides generous limits without requiring an API key.
+
+    ### Limits
+
+    - **Monthly calls:** 20,000 requests/month
+    - **Authentication:** None required
+    - **Endpoint access:** Most endpoints (excluding historical data)
+    - **Rate limiting:** Shared pool across all free users
+
+    ### Check Free Tier Details
+
+    ```bash
+    coinpaprika-cli plans
+    ```
+
+    ### Available Endpoints
+
+    The free tier includes:
+    - Market data (global, tickers, prices)
+    - Coin information and search
+    - Exchange data
+    - Real-time OHLCV (today, latest)
+    - Tags, people, and platforms
+
+    ### Restricted Endpoints
+
+    These require a paid plan:
+    - Historical ticker data (`ticker-history`)
+    - Historical OHLCV data (`ohlcv` with date range)
+    - Contract history (`contract-history`)
+    - ID mappings (`mappings`)
+    - Changelog (`changelog`)
+    - API key info (`key-info`)
+
+    <Note>
+      Run `coinpaprika-cli plans` to see the full list of free tier features and restrictions.
+    </Note>
+  </Tab>
+  
+  <Tab title="Starter Plan">
+    The Starter plan adds historical data and higher limits.
+
+    ### Features
+
+    - Historical ticker data
+    - Historical OHLCV data
+    - Changelog access
+    - Higher rate limits
+    - 5-minute interval data
+
+    ### Upgrade
+
+    ```bash
+    # View plan comparison
+    coinpaprika-cli plans
+
+    # Visit pricing page
+    open https://coinpaprika.com/api/pricing
+    ```
+
+    After getting your API key:
+
+    ```bash
+    coinpaprika-cli config set-key YOUR_KEY
+    ```
+  </Tab>
+  
+  <Tab title="Business & Enterprise">
+    Advanced plans with ID mappings, custom limits, and priority support.
+
+    ### Business Plan
+
+    - All Starter features
+    - ID mappings across platforms
+    - Priority support
+    - Higher rate limits
+
+    ### Enterprise Plan
+
+    - Custom rate limits
+    - Dedicated support
+    - SLA guarantees
+    - Custom integrations
+
+    ### Check Your Plan
+
+    ```bash
+    coinpaprika-cli key-info
+    ```
+
+    Example output:
+    ```
+    Plan:          Business
+    Daily Limit:   100,000
+    Used Today:    1,234
+    Remaining:     98,766
+    Reset:         2024-03-16T00:00:00Z
+    ```
+  </Tab>
+</Tabs>
+
+## Rate Limit Errors
+
+The CLI provides detailed error messages when you hit rate limits or access restricted endpoints.
+
+### Error: Free Tier Rate Limit
+
+When you exceed 20,000 calls/month on the free tier:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin
+```
+
+**Error message:**
+```
+Free tier rate limit reached, or this endpoint requires a paid plan.
+
+If you just hit the rate limit (20,000 calls/mo), wait and retry.
+Run coinpaprika-cli plans to see free tier limits.
+
+To unlock higher limits and all endpoints:
+  Get your API key:  https://coinpaprika.com/api/pricing
+  Set your key:      coinpaprika-cli config set-key <YOUR_KEY>
+```
+
+This error is defined in `src/client.rs:68-77`:
+
+```rust
+StatusCode::PAYMENT_REQUIRED => {
+    let has_key = self.api_key.is_some();
+    if has_key {
+        // Show paid user message
+    } else {
+        bail!(
+            "Free tier rate limit reached, or this endpoint requires a paid plan.\n\n\
+             If you just hit the rate limit (20,000 calls/mo), wait and retry.\n\
+             Run coinpaprika-cli plans to see free tier limits."
+        );
+    }
+}
+```
+
+### Error: Paid Plan Required
+
+When accessing a paid-only endpoint with a key but insufficient plan:
+
+```bash
+coinpaprika-cli ticker-history btc-bitcoin --start 2024-01-01
+```
+
+**Error message:**
+```
+This endpoint requires a higher-tier plan.
+
+Check your plan:   coinpaprika-cli key-info
+Upgrade:           https://coinpaprika.com/api/pricing
+
+Available plans:
+  Starter    — Historical data, ticker history, changelog
+  Business   — All Starter features + ID mappings, priority support
+  Enterprise — Custom limits, dedicated support
+```
+
+This is defined in `src/client.rs:59-67`.
+
+### Error: Too Many Requests
+
+When you exceed your rate limit too quickly:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin
+```
+
+**Error message:**
+```
+Rate limit exceeded. Wait a moment and try again.
+```
+
+This error (HTTP 429) is handled in `src/client.rs:79-81`:
+
+```rust
+StatusCode::TOO_MANY_REQUESTS => {
+    bail!("Rate limit exceeded. Wait a moment and try again.");
+}
+```
+
+### Error: Invalid API Key
+
+When your API key is invalid or expired:
+
+```bash
+coinpaprika-cli ticker btc-bitcoin
+```
+
+**Error message:**
+```
+Invalid API key. Check your key with `coinpaprika-cli config show`
+```
+
+This is defined in `src/client.rs:82-84`:
+
+```rust
+StatusCode::FORBIDDEN => {
+    bail!("Invalid API key. Check your key with `coinpaprika-cli config show`");
+}
+```
+
+## Handling Rate Limits
+
+<Steps>
+  <Step title="Check Your Usage">
+    For paid plans, check your current usage:
+    
+    ```bash
+    coinpaprika-cli key-info
+    ```
+    
+    For free tier, track your usage manually or wait for the error message.
+  </Step>
+  
+  <Step title="Implement Retry Logic">
+    Add exponential backoff in your scripts:
+    
+    ```bash
+    #!/bin/bash
+    max_retries=3
+    retry_delay=5
+    
+    for i in $(seq 1 $max_retries); do
+      if coinpaprika-cli --output json --raw ticker btc-bitcoin; then
+        break
+      else
+        echo "Rate limited, waiting ${retry_delay}s..."
+        sleep $retry_delay
+        retry_delay=$((retry_delay * 2))
+      fi
+    done
+    ```
+  </Step>
+  
+  <Step title="Cache Responses">
+    Cache API responses to reduce redundant calls:
+    
+    ```bash
+    #!/bin/bash
+    cache_file="/tmp/btc_price_cache.json"
+    cache_ttl=300  # 5 minutes
+    
+    if [ -f "$cache_file" ]; then
+      age=$(($(date +%s) - $(stat -f %m "$cache_file")))
+      if [ $age -lt $cache_ttl ]; then
+        cat "$cache_file"
+        exit 0
+      fi
+    fi
+    
+    coinpaprika-cli --output json --raw ticker btc-bitcoin | tee "$cache_file"
+    ```
+  </Step>
+  
+  <Step title="Upgrade Your Plan">
+    If you consistently hit limits, consider upgrading:
+    
+    ```bash
+    # Compare plans
+    coinpaprika-cli plans
+    
+    # Visit pricing page
+    open https://coinpaprika.com/api/pricing
+    ```
+  </Step>
+</Steps>
+
+## Best Practices
+
+### 1. Use Efficient Queries
+
+Limit the amount of data you request:
+
+```bash
+# Good: Request only what you need
+coinpaprika-cli tickers --limit 10
+
+# Avoid: Requesting all tickers unnecessarily
+coinpaprika-cli tickers --limit 5000
+```
+
+### 2. Batch Operations
+
+Group related API calls when possible:
+
+```bash
+# Instead of multiple single ticker calls
+coinpaprika-cli ticker btc-bitcoin
+coinpaprika-cli ticker eth-ethereum
+coinpaprika-cli ticker ada-cardano
+
+# Use a single tickers call and filter
+coinpaprika-cli --output json --raw tickers --limit 100 | jq '.[] | select(.id | IN("btc-bitcoin", "eth-ethereum", "ada-cardano"))'
+```
+
+### 3. Monitor Your Usage
+
+Regularly check your API usage:
+
+```bash
+# Check daily usage (paid plans)
+coinpaprika-cli key-info
+
+# Track usage in scripts
+echo "$(date): API call made" >> api_usage.log
+```
+
+### 4. Handle Errors Gracefully
+
+Always check for rate limit errors in scripts:
+
+```bash
+#!/bin/bash
+result=$(coinpaprika-cli --output json ticker btc-bitcoin 2>&1)
+
+if echo "$result" | jq -e '.error' > /dev/null 2>&1; then
+  error=$(echo "$result" | jq -r '.error')
+  if [[ "$error" == *"Rate limit"* ]]; then
+    echo "Rate limited. Waiting before retry..."
+    sleep 60
+  else
+    echo "Error: $error"
+    exit 1
+  fi
+fi
+```
+
+## Error Response Codes
+
+The CLI handles these HTTP status codes related to rate limiting:
+
+| Status Code | Error Type | Description | CLI Error Message |
+|-------------|------------|-------------|-------------------|
+| 402 | `PAYMENT_REQUIRED` | Free tier limit or endpoint requires paid plan | See above |
+| 403 | `FORBIDDEN` | Invalid API key | "Invalid API key" |
+| 429 | `TOO_MANY_REQUESTS` | Rate limit exceeded | "Rate limit exceeded" |
+| 404 | `NOT_FOUND` | Invalid coin ID or endpoint | "Not found. Check the ID format" |
+| 5xx | Server Error | API temporarily unavailable | "CoinPaprika API is temporarily unavailable" |
+
+These are handled in `src/client.rs:53-95`.
+
+## Checking Available Plans
+
+View detailed plan comparison:
+
+```bash
+coinpaprika-cli plans
+```
+
+This command shows:
+- Free tier features and limits
+- Paid plan benefits
+- Pricing information
+- Upgrade instructions
+
+## Related Commands
+
+- `coinpaprika-cli plans` - View free tier limits and paid plans
+- `coinpaprika-cli key-info` - Check API key usage (paid plans)
+- `coinpaprika-cli config show` - View current API key configuration
+- `coinpaprika-cli status` - Check API health status
+
+## Additional Resources
+
+<CardGroup cols={2}>
+  <Card title="API Pricing" icon="credit-card" href="https://coinpaprika.com/api/pricing">
+    Compare plans and get your API key
+  </Card>
+  
+  <Card title="API Documentation" icon="book" href="https://api.coinpaprika.com">
+    Full API reference and rate limit details
+  </Card>
+</CardGroup>

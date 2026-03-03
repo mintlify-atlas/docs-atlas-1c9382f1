@@ -1,0 +1,194 @@
+---
+title: "tags"
+description: "List cryptocurrency tags and categories"
+---
+
+## Overview
+
+Retrieve a list of tags (categories) used to classify cryptocurrencies. Tags help organize coins by their use case, technology, or sector (e.g., DeFi, NFT, Layer 1).
+
+## Usage
+
+```bash
+coinpaprika-cli tags [OPTIONS]
+```
+
+```bash
+coinpaprika-cli tag <tag_id>
+```
+
+## List Tags
+
+### Options
+
+<ParamField query="limit" type="number" default="50">
+  Maximum number of tags to return
+</ParamField>
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper
+</ParamField>
+
+### Examples
+
+#### List top 20 tags
+
+```bash
+coinpaprika-cli tags --limit 20
+```
+
+#### Get all tags as JSON
+
+```bash
+coinpaprika-cli tags --output json
+```
+
+#### Find popular categories
+
+```bash
+coinpaprika-cli tags --limit 50
+```
+
+## Tag Details
+
+### Arguments
+
+<ParamField path="tag_id" type="string" required>
+  The unique identifier for the tag (e.g., `defi`, `nft`, `layer-1`)
+</ParamField>
+
+### Options
+
+<ParamField query="output" type="string" default="table">
+  Output format: `table` or `json`
+</ParamField>
+
+<ParamField query="raw" type="boolean" default="false">
+  Output raw JSON without metadata wrapper
+</ParamField>
+
+### Examples
+
+#### Get DeFi tag details
+
+```bash
+coinpaprika-cli tag defi
+```
+
+#### Get NFT tag with coin list
+
+```bash
+coinpaprika-cli tag nft --output json
+```
+
+#### Explore Layer 1 projects
+
+```bash
+coinpaprika-cli tag layer-1
+```
+
+## Response (List)
+
+The `tags` command returns a list of all tags:
+
+```json
+[
+  {
+    "id": "defi",
+    "name": "Decentralized Finance (DeFi)",
+    "description": "Decentralized finance refers to financial services using smart contracts...",
+    "type": "functional",
+    "coin_counter": 450,
+    "ico_counter": 25
+  },
+  {
+    "id": "nft",
+    "name": "Non-Fungible Token (NFT)",
+    "description": "Non-fungible tokens are unique digital assets...",
+    "type": "functional",
+    "coin_counter": 180,
+    "ico_counter": 15
+  }
+]
+```
+
+## Response (Detail)
+
+The `tag` command returns detailed information including a list of coins:
+
+```json
+{
+  "id": "defi",
+  "name": "Decentralized Finance (DeFi)",
+  "description": "Decentralized finance (DeFi) refers to financial services using smart contracts on blockchains, primarily Ethereum. DeFi platforms allow users to lend, borrow, trade, and earn interest without traditional financial intermediaries.",
+  "type": "functional",
+  "coin_counter": 450,
+  "ico_counter": 25,
+  "coins": [
+    "eth-ethereum",
+    "link-chainlink",
+    "uni-uniswap",
+    "aave-aave",
+    "mkr-maker"
+  ]
+}
+```
+
+## Response Fields
+
+<ResponseField name="id" type="string">
+  Unique tag identifier (e.g., `defi`, `nft`)
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Display name of the tag
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Detailed explanation of the tag category
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Tag classification type (e.g., `functional`, `technological`)
+</ResponseField>
+
+<ResponseField name="coin_counter" type="number">
+  Number of coins tagged with this category
+</ResponseField>
+
+<ResponseField name="ico_counter" type="number">
+  Number of ICOs associated with this category
+</ResponseField>
+
+<ResponseField name="coins" type="array">
+  List of coin IDs tagged with this category (only in detail view)
+</ResponseField>
+
+## Notes
+
+- Tags are curated by CoinPaprika to help classify and discover coins
+- Multiple tags can apply to a single coin
+- The `coins` array is only returned when fetching a specific tag detail
+- All values may be `null` if data is unavailable
+- Available on free tier
+
+## Common Tag Examples
+
+- `defi` - Decentralized Finance
+- `nft` - Non-Fungible Tokens
+- `layer-1` - Layer 1 blockchains
+- `smart-contracts` - Smart contract platforms
+- `privacy-coins` - Privacy-focused cryptocurrencies
+- `stablecoins` - Price-stable cryptocurrencies
+- `exchange-based-tokens` - Exchange utility tokens
+- `metaverse` - Metaverse and virtual world projects
+
+## Related Commands
+
+- [`coins`](/api/coins) - List all coins
+- [`coin`](/api/coin) - Get coin details
+- [`search`](/api/search) - Search across coins, tags, and more
