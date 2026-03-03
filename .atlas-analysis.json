@@ -1,0 +1,144 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "CoinPaprika CLI",
+  "projectDescription": "Crypto market data from your terminal - 8,000+ coins, real-time prices, OHLCV, exchanges with free tier included.",
+  "theme": "aspen",
+  "primaryColor": "#F7931A",
+  "lightColor": "#FFA940",
+  "darkColor": "#D97706",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/authentication",
+              "concepts/output-formats",
+              "concepts/rate-limits"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "commands/overview",
+              "commands/market-data",
+              "commands/coins",
+              "commands/tickers",
+              "commands/ohlcv",
+              "commands/exchanges",
+              "commands/contracts",
+              "commands/search-convert",
+              "commands/configuration",
+              "commands/utilities"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/shell-mode",
+              "advanced/scripting",
+              "advanced/integration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Command Reference",
+            "pages": [
+              "api/global",
+              "api/coins-list",
+              "api/coin-detail",
+              "api/coin-events",
+              "api/coin-exchanges",
+              "api/coin-markets",
+              "api/tickers-list",
+              "api/ticker-detail",
+              "api/ticker-history",
+              "api/ohlcv-historical",
+              "api/ohlcv-latest",
+              "api/ohlcv-today",
+              "api/exchanges-list",
+              "api/exchange-detail",
+              "api/exchange-markets",
+              "api/tags",
+              "api/person",
+              "api/search",
+              "api/convert",
+              "api/platforms",
+              "api/contracts",
+              "api/contract-ticker",
+              "api/contract-history",
+              "api/key-info",
+              "api/mappings",
+              "api/changelog",
+              "api/config",
+              "api/status",
+              "api/attribution",
+              "api/shell"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "8,000+ cryptocurrency coins with real-time price data",
+    "Historical OHLCV data with multiple intervals",
+    "Exchange and market information",
+    "Smart contract platform integration",
+    "Interactive shell (REPL) mode",
+    "Multiple output formats (table and JSON)",
+    "Free tier with 20,000 calls/month",
+    "Flexible authentication (API key, env var, or config file)",
+    "Search across coins, exchanges, people, and tags",
+    "Currency conversion between cryptocurrencies and fiat"
+  ],
+  "publicApiSurface": [
+    "global - Market overview",
+    "coins - List all coins",
+    "coin - Coin details",
+    "coin-events - Coin events",
+    "coin-exchanges - Exchanges trading a coin",
+    "coin-markets - Markets for a coin",
+    "tickers - All tickers",
+    "ticker - Single ticker",
+    "ticker-history - Historical ticker data [Starter+]",
+    "ohlcv - Historical OHLCV [Starter+]",
+    "ohlcv-latest - Last full day OHLCV",
+    "ohlcv-today - Today's OHLCV",
+    "exchanges - List exchanges",
+    "exchange - Exchange details",
+    "exchange-markets - Exchange markets",
+    "tags - List tags/categories",
+    "tag - Tag details",
+    "person - Person details",
+    "search - Search everything",
+    "convert - Currency conversion",
+    "platforms - Contract platforms",
+    "contracts - Platform contracts",
+    "contract-ticker - Ticker by contract",
+    "contract-history - Contract history [Starter+]",
+    "key-info - API key info [Paid]",
+    "mappings - ID mappings [Business+]",
+    "changelog - Coin ID changelog [Starter+]",
+    "config - Manage configuration",
+    "status - API health check",
+    "attribution - Attribution snippets",
+    "onboard - Setup wizard",
+    "shell - Interactive REPL",
+    "plans - Pricing information"
+  ]
+}
